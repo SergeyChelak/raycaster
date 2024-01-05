@@ -1,3 +1,5 @@
+/// DoomLike Project, 2024
+///
 use std::time::Duration;
 
 use sdl2::{event::Event, pixels::Color, AudioSubsystem, EventPump, Sdl, VideoSubsystem};

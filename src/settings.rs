@@ -1,3 +1,5 @@
+/// DoomLike Project, 2024
+///
 use std::{fs, io, path::Path};
 
 use toml;
