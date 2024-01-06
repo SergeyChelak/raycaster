@@ -93,7 +93,7 @@ impl<'a> MediaServiceSDL<'a> {
                     keycode: Some(keycode),
                     ..
                 } => {
-                    events.push(ControlEvent::Keyboard(keycode as i32, true));
+                    events.push(ControlEvent::Keyboard(keycode as i32, false));
                 }
                 _ => {}
             }

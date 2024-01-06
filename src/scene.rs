@@ -23,6 +23,14 @@ pub enum ControlEvent {
     Keyboard(i32, bool), // key code | is pressed
 }
 
+#[derive(Default)]
+struct ControllerState {
+    up_pressed: bool,
+    down_pressed: bool,
+    left_pressed: bool,
+    right_pressed: bool,
+}
+
 pub trait Scene {
     /// could be considered as reset
     fn prepare(&mut self);
@@ -51,6 +59,7 @@ pub struct Raycaster {
     map: LevelMap,
     state: State,
     player_pos: Float2d,
+    controller_state: ControllerState,
 }
 
 impl Raycaster {
@@ -60,13 +69,26 @@ impl Raycaster {
             map: Vec::default(),
             state: State::default(),
             player_pos: Float2d::default(),
+            controller_state: ControllerState::default(),
         }
     }
 }
 
 impl Scene for Raycaster {
     fn update(&mut self) {
-        // println!("Updating scene state");
+        let step = 5.0;
+        if self.controller_state.up_pressed {
+            self.player_pos.y -= step;
+        }
+        if self.controller_state.down_pressed {
+            self.player_pos.y += step;
+        }
+        if self.controller_state.left_pressed {
+            self.player_pos.x -= step;
+        }
+        if self.controller_state.right_pressed {
+            self.player_pos.x += step;
+        }
     }
 
     fn draw(&self) -> Vec<DrawCommand> {
@@ -127,6 +149,18 @@ impl Scene for Raycaster {
     }
 
     fn process_events(&mut self, events: &[ControlEvent]) {
-        // println!("Processing {} events", events.len());
+        for event in events {
+            match event {
+                ControlEvent::Keyboard(code, is_pressed) => match code {
+                    119 => self.controller_state.up_pressed = *is_pressed,
+                    115 => self.controller_state.down_pressed = *is_pressed,
+                    97 => self.controller_state.left_pressed = *is_pressed,
+                    100 => self.controller_state.right_pressed = *is_pressed,
+                    _ => {
+                        // don't care
+                    }
+                },
+            }
+        }
     }
 }
