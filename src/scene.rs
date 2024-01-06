@@ -1,7 +1,4 @@
-use crate::{
-    settings::Settings,
-    vectors::{Int2d, Size2d},
-};
+use crate::{settings::Settings, vectors::Size2d};
 
 /// DoomLike Project, 2024
 ///
@@ -19,20 +16,15 @@ impl Default for State {
     }
 }
 
-#[derive(Default)]
-pub struct UserInput {
-    pub up_pressed: bool,
-    pub down_pressed: bool,
-    pub left_pressed: bool,
-    pub right_pressed: bool,
-
-    pub delta_time: usize, // ????
+pub enum ControlEvent {
+    Keyboard(i32, bool), // key code | is pressed
 }
 
 pub trait Scene {
     fn prepare(&mut self);
 
-    fn update(&mut self, input: &UserInput) -> State;
+    fn process_events(&mut self, events: &[ControlEvent]);
+    fn update(&mut self);
     fn draw(&self);
 
     fn on_terminate(&mut self);
@@ -56,12 +48,12 @@ impl Raycaster {
 }
 
 impl Scene for Raycaster {
-    fn update(&mut self, input: &UserInput) -> State {
-        todo!()
+    fn update(&mut self) {
+        println!("Updating scene state");
     }
 
     fn draw(&self) {
-        todo!()
+        println!("Drawing whole scene");
     }
 
     fn is_running(&self) -> bool {
@@ -81,5 +73,9 @@ impl Scene for Raycaster {
             width: self.settings.scene.screen_width as u32,
             height: self.settings.scene.screen_height as u32,
         }
+    }
+
+    fn process_events(&mut self, events: &[ControlEvent]) {
+        println!("Processing {} events", events.len());
     }
 }

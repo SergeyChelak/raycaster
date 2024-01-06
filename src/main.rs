@@ -31,6 +31,6 @@ fn main() -> Result<(), String> {
     let mut ray_caster = Raycaster::new(settings);
 
     let mut media_service = MediaServiceSDL::new(&mut ray_caster)?;
-    media_service.start()?;
+    media_service.run()?;
     Ok(())
 }
