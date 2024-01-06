@@ -1,10 +1,13 @@
 /// DoomLike Project, 2024
 ///
-use std::time::Duration;
+use std::time::{Duration, Instant};
 
-use sdl2::{event::Event, keyboard::Keycode, pixels::Color, EventPump, VideoSubsystem};
+use sdl2::{
+    event::Event, keyboard::Keycode, pixels::Color, rect::Rect, render::WindowCanvas, EventPump,
+    VideoSubsystem,
+};
 
-use crate::scene::{ControlEvent, Scene};
+use crate::scene::{ControlEvent, GeometryObject, Scene};
 
 pub struct MediaServiceSDL<'a> {
     video_subsystem: VideoSubsystem,
@@ -34,21 +37,39 @@ impl<'a> MediaServiceSDL<'a> {
             .build()
             .map_err(|op| op.to_string())?;
         let mut canvas = window.into_canvas().build().map_err(|op| op.to_string())?;
+        let mut frames = 0;
+        let mut time = Instant::now();
         while self.scene.is_running() {
             self.process_events();
             self.scene.update();
             canvas.set_draw_color(Color::BLACK);
             canvas.clear();
-            // TODO:
-            // return array of objects to draw
-            //  or
-            // pass drawer context into scene draw method
-            self.scene.draw();
+            self.draw(&mut canvas);
             canvas.present();
             let duration = Duration::from_millis(50);
             ::std::thread::sleep(duration);
+            frames += 1;
+            let elapsed = time.elapsed();
+            if elapsed.as_millis() > 1000 {
+                time = Instant::now();
+                let title = format!("FPS: {frames}");
+                _ = canvas.window_mut().set_title(&title);
+                frames = 0;
+            }
         }
         Ok(())
+    }
+
+    fn draw(&self, canvas: &mut WindowCanvas) {
+        canvas.set_draw_color(Color::WHITE);
+        for obj in self.scene.draw() {
+            match obj {
+                GeometryObject::Rectangle(x, y, w, h) => {
+                    let rect = Rect::new(x, y, w, h);
+                    _ = canvas.draw_rect(rect);
+                }
+            }
+        }
     }
 
     fn process_events(&mut self) {

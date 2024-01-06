@@ -1,7 +1,7 @@
 [scene]
-tile_size = 24
-screen_height = 900
-screen_width = 1600
+tile_size = 20
+screen_height = 1000
+screen_width = 1000
 fps = 60
 
 [level]

@@ -1,4 +1,8 @@
-use crate::{pbm::PBMImage, settings::Settings, vectors::Size2d};
+use crate::{
+    pbm::PBMImage,
+    settings::Settings,
+    vectors::{Int2d, Size2d},
+};
 
 /// DoomLike Project, 2024
 ///
@@ -25,7 +29,7 @@ pub trait Scene {
 
     fn process_events(&mut self, events: &[ControlEvent]);
     fn update(&mut self);
-    fn draw(&self);
+    fn draw(&self) -> Vec<GeometryObject>;
 
     /// system callbacks
     fn on_terminate(&mut self);
@@ -36,6 +40,10 @@ pub trait Scene {
 }
 
 type LevelMap = Vec<Vec<i32>>;
+
+pub enum GeometryObject {
+    Rectangle(i32, i32, u32, u32),
+}
 
 pub struct Raycaster {
     settings: Settings,
@@ -55,11 +63,30 @@ impl Raycaster {
 
 impl Scene for Raycaster {
     fn update(&mut self) {
-        println!("Updating scene state");
+        // println!("Updating scene state");
     }
 
-    fn draw(&self) {
-        println!("Drawing whole scene");
+    fn draw(&self) -> Vec<GeometryObject> {
+        let mut objects = Vec::new();
+        // map
+        let tile_size = self.settings.scene.tile_size;
+        for (r, row) in self.map.iter().enumerate() {
+            for (c, val) in row.iter().enumerate() {
+                if *val == 0 {
+                    continue;
+                }
+                let obj = GeometryObject::Rectangle(
+                    (c * tile_size) as i32,
+                    (r * tile_size) as i32,
+                    tile_size as u32,
+                    tile_size as u32,
+                );
+                objects.push(obj);
+            }
+        }
+        // other object
+        // ...
+        objects
     }
 
     fn is_running(&self) -> bool {
@@ -88,6 +115,6 @@ impl Scene for Raycaster {
     }
 
     fn process_events(&mut self, events: &[ControlEvent]) {
-        println!("Processing {} events", events.len());
+        // println!("Processing {} events", events.len());
     }
 }
