@@ -1,7 +1,7 @@
 use crate::{
     pbm::PBMImage,
     settings::Settings,
-    vectors::{Int2d, Size2d},
+    vectors::{Float2d, Size2d},
 };
 
 /// DoomLike Project, 2024
@@ -29,7 +29,7 @@ pub trait Scene {
 
     fn process_events(&mut self, events: &[ControlEvent]);
     fn update(&mut self);
-    fn draw(&self) -> Vec<GeometryObject>;
+    fn draw(&self) -> Vec<DrawCommand>;
 
     /// system callbacks
     fn on_terminate(&mut self);
@@ -41,7 +41,8 @@ pub trait Scene {
 
 type LevelMap = Vec<Vec<i32>>;
 
-pub enum GeometryObject {
+pub enum DrawCommand {
+    ColorRGB(u8, u8, u8),
     Rectangle(i32, i32, u32, u32),
 }
 
@@ -49,6 +50,7 @@ pub struct Raycaster {
     settings: Settings,
     map: LevelMap,
     state: State,
+    player_pos: Float2d,
 }
 
 impl Raycaster {
@@ -57,6 +59,7 @@ impl Raycaster {
             settings,
             map: Vec::default(),
             state: State::default(),
+            player_pos: Float2d::default(),
         }
     }
 }
@@ -66,16 +69,17 @@ impl Scene for Raycaster {
         // println!("Updating scene state");
     }
 
-    fn draw(&self) -> Vec<GeometryObject> {
+    fn draw(&self) -> Vec<DrawCommand> {
         let mut objects = Vec::new();
         // map
+        objects.push(DrawCommand::ColorRGB(255, 255, 255));
         let tile_size = self.settings.scene.tile_size;
         for (r, row) in self.map.iter().enumerate() {
             for (c, val) in row.iter().enumerate() {
                 if *val == 0 {
                     continue;
                 }
-                let obj = GeometryObject::Rectangle(
+                let obj = DrawCommand::Rectangle(
                     (c * tile_size) as i32,
                     (r * tile_size) as i32,
                     tile_size as u32,
@@ -84,7 +88,14 @@ impl Scene for Raycaster {
                 objects.push(obj);
             }
         }
-        // other object
+        // player
+        {
+            objects.push(DrawCommand::ColorRGB(255, 128, 128));
+            let rect =
+                DrawCommand::Rectangle(self.player_pos.x as i32, self.player_pos.y as i32, 10, 10);
+            objects.push(rect);
+        }
+        // other objects
         // ...
         objects
     }
@@ -104,6 +115,7 @@ impl Scene for Raycaster {
             self.map = pbm_image.transform_to_array(|x| x as i32);
             println!("Level map was loaded");
         }
+        self.player_pos = Float2d::new(level_info.player_x, level_info.player_y);
         self.state = State::Running;
     }
 

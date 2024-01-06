@@ -6,6 +6,6 @@ fps = 60
 
 [level]
 map = "assets/map.pbm"
-player_x = 300
-player_y = 150
+player_x = 550
+player_y = 770
 player_speed = 0.01

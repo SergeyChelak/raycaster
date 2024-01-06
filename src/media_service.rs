@@ -7,7 +7,7 @@ use sdl2::{
     VideoSubsystem,
 };
 
-use crate::scene::{ControlEvent, GeometryObject, Scene};
+use crate::scene::{ControlEvent, DrawCommand, Scene};
 
 pub struct MediaServiceSDL<'a> {
     video_subsystem: VideoSubsystem,
@@ -61,10 +61,12 @@ impl<'a> MediaServiceSDL<'a> {
     }
 
     fn draw(&self, canvas: &mut WindowCanvas) {
-        canvas.set_draw_color(Color::WHITE);
-        for obj in self.scene.draw() {
-            match obj {
-                GeometryObject::Rectangle(x, y, w, h) => {
+        for command in self.scene.draw() {
+            match command {
+                DrawCommand::ColorRGB(r, g, b) => {
+                    canvas.set_draw_color(Color::RGB(r, g, b));
+                }
+                DrawCommand::Rectangle(x, y, w, h) => {
                     let rect = Rect::new(x, y, w, h);
                     _ = canvas.draw_rect(rect);
                 }

@@ -1,3 +1,4 @@
+#[derive(Default)]
 pub struct Vec2d<T> {
     pub x: T,
     pub y: T,
@@ -11,6 +12,7 @@ impl<T> Vec2d<T> {
 
 pub type Int = i32;
 pub type Int2d = Vec2d<Int>;
+pub type Float2d = Vec2d<f32>;
 
 pub struct Size2d<T> {
     pub width: T,
