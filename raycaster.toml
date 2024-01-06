@@ -1,0 +1,11 @@
+[scene]
+tile_size = 24
+screen_height = 900
+screen_width = 1600
+fps = 60
+
+[level]
+map = "assets/map.pbm"
+player_x = 300
+player_y = 150
+player_speed = 0.01

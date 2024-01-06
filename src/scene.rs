@@ -1,7 +1,6 @@
-use crate::{settings::Settings, vectors::Size2d};
+use crate::{pbm::PBMImage, settings::Settings, vectors::Size2d};
 
 /// DoomLike Project, 2024
-///
 ///
 
 pub enum State {
@@ -21,20 +20,26 @@ pub enum ControlEvent {
 }
 
 pub trait Scene {
+    /// could be considered as reset
     fn prepare(&mut self);
 
     fn process_events(&mut self, events: &[ControlEvent]);
     fn update(&mut self);
     fn draw(&self);
 
+    /// system callbacks
     fn on_terminate(&mut self);
-    fn is_running(&self) -> bool;
 
+    /// state properties
+    fn is_running(&self) -> bool;
     fn window_size(&self) -> Size2d<u32>;
 }
 
+type LevelMap = Vec<Vec<i32>>;
+
 pub struct Raycaster {
     settings: Settings,
+    map: LevelMap,
     state: State,
 }
 
@@ -42,6 +47,7 @@ impl Raycaster {
     pub fn new(settings: Settings) -> Self {
         Self {
             settings,
+            map: Vec::default(),
             state: State::default(),
         }
     }
@@ -65,6 +71,12 @@ impl Scene for Raycaster {
     }
 
     fn prepare(&mut self) {
+        let level_info = &self.settings.level;
+        // TODO: refactor this method to return Result<...>
+        if let Ok(pbm_image) = PBMImage::with_file(&level_info.map) {
+            self.map = pbm_image.transform_to_array(|x| x as i32);
+            println!("Level map was loaded");
+        }
         self.state = State::Running;
     }
 

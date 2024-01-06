@@ -90,7 +90,10 @@ impl Display for PBMImage {
 }
 
 impl PBMImage {
-    pub fn transform_to_array<T>(&self, transform: &dyn Fn(PBMColorType) -> T) -> Vec<Vec<T>> {
+    pub fn transform_to_array<T, Transform>(&self, transform: Transform) -> Vec<Vec<T>>
+    where
+        Transform: Fn(PBMColorType) -> T,
+    {
         let mut arr = Vec::with_capacity(self.rows);
         for r in 0..self.rows {
             let mut row = Vec::with_capacity(self.cols);
