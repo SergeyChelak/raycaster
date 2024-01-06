@@ -1,4 +1,5 @@
-[renderer]
+[scene]
 tile_size = 24
-screen_height = 768
-screen_width = 1024
+screen_height = 900
+screen_width = 1600
+fps = 60

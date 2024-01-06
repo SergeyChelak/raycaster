@@ -8,7 +8,7 @@ use serde_derive::Deserialize;
 
 #[derive(Default, Deserialize)]
 pub struct Settings {
-    pub renderer: RendererSettings,
+    pub scene: SceneSettings,
 }
 
 impl Settings {
@@ -20,8 +20,9 @@ impl Settings {
 }
 
 #[derive(Default, Deserialize)]
-pub struct RendererSettings {
+pub struct SceneSettings {
     pub tile_size: usize,
     pub screen_height: usize,
     pub screen_width: usize,
+    pub fps: usize,
 }

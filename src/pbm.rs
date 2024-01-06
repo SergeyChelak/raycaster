@@ -7,7 +7,7 @@
 ///
 use std::{fmt::Display, fs, path::Path};
 
-type PBMColorType = u8;
+pub type PBMColorType = u8;
 
 pub struct PBMImage {
     rows: usize,
@@ -86,5 +86,20 @@ impl Display for PBMImage {
             write!(f, "\n")?;
         }
         Ok(())
+    }
+}
+
+impl PBMImage {
+    pub fn transform_to_array<T>(&self, transform: &dyn Fn(PBMColorType) -> T) -> Vec<Vec<T>> {
+        let mut arr = Vec::with_capacity(self.rows);
+        for r in 0..self.rows {
+            let mut row = Vec::with_capacity(self.cols);
+            for c in 0..self.cols {
+                let val = self.get(r, c);
+                row.push(transform(val));
+            }
+            arr.push(row);
+        }
+        arr
     }
 }
