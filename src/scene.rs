@@ -31,6 +31,25 @@ struct ControllerState {
     right_pressed: bool,
 }
 
+impl ControllerState {
+    const KEYCODE_W: i32 = 119;
+    const KEYCODE_S: i32 = 115;
+    const KEYCODE_A: i32 = 97;
+    const KEYCODE_D: i32 = 100;
+
+    fn on_key_event(&mut self, key_code: i32, is_pressed: bool) {
+        match key_code {
+            Self::KEYCODE_W => self.up_pressed = is_pressed,
+            Self::KEYCODE_S => self.down_pressed = is_pressed,
+            Self::KEYCODE_A => self.left_pressed = is_pressed,
+            Self::KEYCODE_D => self.right_pressed = is_pressed,
+            _ => {
+                // don't care
+            }
+        }
+    }
+}
+
 pub trait Scene {
     /// could be considered as reset
     fn prepare(&mut self);
@@ -151,15 +170,9 @@ impl Scene for Raycaster {
     fn process_events(&mut self, events: &[ControlEvent]) {
         for event in events {
             match event {
-                ControlEvent::Keyboard(code, is_pressed) => match code {
-                    119 => self.controller_state.up_pressed = *is_pressed,
-                    115 => self.controller_state.down_pressed = *is_pressed,
-                    97 => self.controller_state.left_pressed = *is_pressed,
-                    100 => self.controller_state.right_pressed = *is_pressed,
-                    _ => {
-                        // don't care
-                    }
-                },
+                ControlEvent::Keyboard(code, is_pressed) => {
+                    self.controller_state.on_key_event(*code, *is_pressed)
+                }
             }
         }
     }
