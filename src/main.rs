@@ -1,18 +1,15 @@
 mod common;
 mod control;
-
-mod renderer;
-use renderer::*;
-
-mod scene;
-use scene::*;
-
-mod settings;
-use settings::*;
-
 mod pbm;
-
+mod player;
+mod renderer;
+mod scene;
+mod settings;
 mod vectors;
+
+use renderer::RendererSDL;
+use scene::Scene;
+use settings::Settings;
 
 const SETTINGS_FILE_PATH: &str = "raycaster.toml";
 

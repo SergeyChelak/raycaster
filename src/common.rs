@@ -16,3 +16,9 @@ pub struct Size2d<T> {
 //         Self { width, height }
 //     }
 // }
+
+pub enum DrawCommand {
+    ColorRGB(u8, u8, u8),
+    Rectangle(i32, i32, u32, u32),
+    Line(i32, i32, i32, i32),
+}

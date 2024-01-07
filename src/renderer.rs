@@ -9,8 +9,8 @@ use sdl2::{
     EventPump, VideoSubsystem,
 };
 
-use crate::control::ControlEvent;
-use crate::scene::{DrawCommand, Scene};
+use crate::scene::Scene;
+use crate::{common::DrawCommand, control::ControlEvent};
 
 pub struct RendererSDL<'a> {
     video_subsystem: VideoSubsystem,
