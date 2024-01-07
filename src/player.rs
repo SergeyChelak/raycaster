@@ -3,7 +3,6 @@ use std::f32::consts::PI;
 use crate::{
     common::{DrawCommand, Float, Float2d},
     control::ControllerState,
-    settings::LevelInfo,
 };
 
 #[derive(Default)]
@@ -16,10 +15,10 @@ pub struct Player {
 }
 
 impl Player {
-    pub fn setup(&mut self, level_info: &LevelInfo) {
-        self.position = Float2d::new(level_info.player_x, level_info.player_y);
-        self.movement_speed = level_info.player_movement_speed;
-        self.rotation_speed = level_info.player_rotation_speed;
+    pub fn setup(&mut self, position: Float2d, movement_speed: Float, rotation_speed: Float) {
+        self.position = position;
+        self.movement_speed = movement_speed;
+        self.rotation_speed = rotation_speed;
     }
 
     pub fn do_movement(&mut self, delta_time: Float, controller_state: &ControllerState) {

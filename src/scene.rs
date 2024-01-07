@@ -5,6 +5,7 @@ use crate::{
     control::{ControlEvent, ControllerState},
     pbm::PBMImage,
     player::Player,
+    raycaster::RayCaster,
     settings::Settings,
 };
 
@@ -27,6 +28,7 @@ pub struct Scene {
     map: LevelMap,
     state: State,
     player: Player,
+    ray_caster: RayCaster,
     controller_state: ControllerState,
     time: Instant,
 }
@@ -38,6 +40,7 @@ impl Scene {
             map: Vec::default(),
             state: State::default(),
             player: Player::default(),
+            ray_caster: RayCaster::default(),
             controller_state: ControllerState::default(),
             time: Instant::now(),
         }
@@ -50,7 +53,12 @@ impl Scene {
             self.map = pbm_image.transform_to_array(|x| x as i32);
             println!("Level map was loaded");
         }
-        self.player.setup(level_info);
+        self.player.setup(
+            Float2d::new(level_info.player_x, level_info.player_y),
+            level_info.player_movement_speed,
+            level_info.player_rotation_speed,
+        );
+        self.ray_caster.setup();
         self.state = State::Running;
     }
 

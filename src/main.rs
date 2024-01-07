@@ -2,6 +2,7 @@ mod common;
 mod control;
 mod pbm;
 mod player;
+mod raycaster;
 mod renderer;
 mod scene;
 mod settings;
