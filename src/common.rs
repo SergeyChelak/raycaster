@@ -1,6 +1,8 @@
 use crate::vectors::Vec2d;
 
+#[allow(dead_code)]
 pub type Int = i32;
+#[allow(dead_code)]
 pub type Int2d = Vec2d<Int>;
 
 pub type Float = f32;

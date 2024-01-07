@@ -56,14 +56,6 @@ impl PBMImage {
         })
     }
 
-    pub fn cols(&self) -> usize {
-        self.cols
-    }
-
-    pub fn rows(&self) -> usize {
-        self.rows
-    }
-
     pub fn get(&self, row: usize, col: usize) -> PBMColorType {
         self.content[self.cols * row + col]
     }
@@ -76,7 +68,7 @@ impl Display for PBMImage {
                 let ch = if self.get(row, col) == 0 { ' ' } else { '#' };
                 write!(f, "{}", ch)?;
             }
-            write!(f, "\n")?;
+            writeln!(f)?;
         }
         Ok(())
     }

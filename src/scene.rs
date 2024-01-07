@@ -50,7 +50,7 @@ impl Scene {
             self.map = pbm_image.transform_to_array(|x| x as i32);
             println!("Level map was loaded");
         }
-        self.player.setup(&level_info);
+        self.player.setup(level_info);
         self.state = State::Running;
     }
 
