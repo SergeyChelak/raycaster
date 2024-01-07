@@ -18,8 +18,8 @@ fn main() -> Result<(), String> {
     let Ok(settings) = Settings::with_file(SETTINGS_FILE_PATH) else {
         return Err("Failed to read settings".to_string());
     };
-    let mut ray_caster = Raycaster::new(settings);
-    let mut media_service = MediaServiceSDL::new(&mut ray_caster)?;
+    let mut scene = Scene::new(settings);
+    let mut media_service = MediaServiceSDL::new(&mut scene)?;
     media_service.run()?;
     Ok(())
 }

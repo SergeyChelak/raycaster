@@ -127,23 +127,6 @@ impl Player {
     }
 }
 
-pub trait Scene {
-    /// could be considered as reset
-    fn prepare(&mut self);
-
-    fn process_events(&mut self, events: &[ControlEvent]);
-    fn update(&mut self);
-    fn draw(&self, commands: &mut Vec<DrawCommand>);
-
-    /// system callbacks
-    fn on_terminate(&mut self);
-
-    /// state properties
-    fn is_running(&self) -> bool;
-    fn window_size(&self) -> Size2d<u32>;
-    fn target_fps(&self) -> usize;
-}
-
 type LevelMap = Vec<Vec<i32>>;
 
 pub enum DrawCommand {
@@ -152,7 +135,7 @@ pub enum DrawCommand {
     Line(i32, i32, i32, i32),
 }
 
-pub struct Raycaster {
+pub struct Scene {
     settings: Settings,
     map: LevelMap,
     state: State,
@@ -161,7 +144,7 @@ pub struct Raycaster {
     time: Instant,
 }
 
-impl Raycaster {
+impl Scene {
     pub fn new(settings: Settings) -> Self {
         Self {
             settings,
@@ -173,25 +156,7 @@ impl Raycaster {
         }
     }
 
-    fn has_collisions(&self) -> bool {
-        // there is no real collider
-        // check if player collides with wall to make implementation simpler as possible
-        let Float2d { x, y } = self.player.position;
-        if x < 0.0 || y < 0.0 {
-            return false;
-        }
-        let size = self.settings.scene.tile_size;
-        let (col, row) = (x as usize / size, y as usize / size);
-        if row > self.map.len() || col > self.map[0].len() {
-            false
-        } else {
-            self.map[row][col] > 0
-        }
-    }
-}
-
-impl Scene for Raycaster {
-    fn prepare(&mut self) {
+    pub fn prepare(&mut self) {
         let level_info = &self.settings.level;
         // TODO: refactor this method to return Result<...>
         if let Ok(pbm_image) = PBMImage::with_file(&level_info.map) {
@@ -204,7 +169,7 @@ impl Scene for Raycaster {
         self.state = State::Running;
     }
 
-    fn process_events(&mut self, events: &[ControlEvent]) {
+    pub fn process_events(&mut self, events: &[ControlEvent]) {
         for event in events {
             match event {
                 ControlEvent::Keyboard(code, is_pressed) => {
@@ -214,7 +179,7 @@ impl Scene for Raycaster {
         }
     }
 
-    fn update(&mut self) {
+    pub fn update(&mut self) {
         let elapsed = self.time.elapsed().as_secs_f32();
         self.player.do_movement(elapsed, &self.controller_state);
         if self.has_collisions() {
@@ -223,7 +188,7 @@ impl Scene for Raycaster {
         self.time = Instant::now();
     }
 
-    fn draw(&self, commands: &mut Vec<DrawCommand>) {
+    pub fn draw(&self, commands: &mut Vec<DrawCommand>) {
         // map
         commands.push(DrawCommand::ColorRGB(255, 255, 255));
         let tile_size = self.settings.scene.tile_size;
@@ -247,22 +212,38 @@ impl Scene for Raycaster {
         // ...
     }
 
-    fn is_running(&self) -> bool {
+    fn has_collisions(&self) -> bool {
+        // there is no real collider
+        // check if player collides with wall to make implementation simpler as possible
+        let Float2d { x, y } = self.player.position;
+        if x < 0.0 || y < 0.0 {
+            return false;
+        }
+        let size = self.settings.scene.tile_size;
+        let (col, row) = (x as usize / size, y as usize / size);
+        if row > self.map.len() || col > self.map[0].len() {
+            false
+        } else {
+            self.map[row][col] > 0
+        }
+    }
+
+    pub fn is_running(&self) -> bool {
         !matches!(self.state, State::Terminated)
     }
 
-    fn on_terminate(&mut self) {
+    pub fn on_terminate(&mut self) {
         self.state = State::Terminated;
     }
 
-    fn window_size(&self) -> Size2d<u32> {
+    pub fn window_size(&self) -> Size2d<u32> {
         Size2d {
             width: self.settings.scene.screen_width as u32,
             height: self.settings.scene.screen_height as u32,
         }
     }
 
-    fn target_fps(&self) -> usize {
+    pub fn target_fps(&self) -> usize {
         self.settings.scene.fps
     }
 }

@@ -14,11 +14,11 @@ use crate::scene::{ControlEvent, DrawCommand, Scene};
 pub struct MediaServiceSDL<'a> {
     video_subsystem: VideoSubsystem,
     event_pump: EventPump,
-    scene: &'a mut dyn Scene,
+    scene: &'a mut Scene,
 }
 
 impl<'a> MediaServiceSDL<'a> {
-    pub fn new(scene: &'a mut dyn Scene) -> Result<Self, String> {
+    pub fn new(scene: &'a mut Scene) -> Result<Self, String> {
         let context = sdl2::init()?;
         let video_subsystem = context.video()?;
         let event_pump = context.event_pump()?;
@@ -34,7 +34,7 @@ impl<'a> MediaServiceSDL<'a> {
         let window_size = self.scene.window_size();
         let window = self
             .video_subsystem
-            .window("Raycaster", window_size.width, window_size.height)
+            .window("FPS: ??", window_size.width, window_size.height)
             .position_centered()
             .build()
             .map_err(|op| op.to_string())?;
