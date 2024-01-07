@@ -63,6 +63,7 @@ impl ControllerState {
 
 #[derive(Default)]
 struct Player {
+    prev_position: Float2d,
     position: Float2d,
     angle: Float,
     movement_speed: Float,
@@ -94,6 +95,7 @@ impl Player {
             dx = -dist_sin;
             dy = dist_cos;
         }
+        self.prev_position = self.position;
         self.position += Float2d::new(dx, dy);
 
         if controller_state.rotate_left_pressed {
@@ -103,6 +105,10 @@ impl Player {
             self.angle += self.rotation_speed * delta_time;
         }
         self.angle %= 2.0 * PI;
+    }
+
+    fn undo_movement(&mut self) {
+        self.position = self.prev_position;
     }
 
     fn draw(&self, commands: &mut Vec<DrawCommand>) {
@@ -167,20 +173,53 @@ impl Raycaster {
         }
     }
 
-    fn collisions(&self, delta: &Float2d) -> bool {
-        // wall collisions check
-        let pos = self.player.position + delta;
-        assert!(pos.x >= 0.0 && pos.y >= 0.0);
+    fn has_collisions(&self) -> bool {
+        // there is no real collider
+        // check if player collides with wall to make implementation simpler as possible
+        let Float2d { x, y } = self.player.position;
+        if x < 0.0 || y < 0.0 {
+            return false;
+        }
         let size = self.settings.scene.tile_size;
-        let (col, row) = (pos.x as usize / size, pos.y as usize / size);
-        self.map[row][col] > 0
+        let (col, row) = (x as usize / size, y as usize / size);
+        if row > self.map.len() || col > self.map[0].len() {
+            false
+        } else {
+            self.map[row][col] > 0
+        }
     }
 }
 
 impl Scene for Raycaster {
+    fn prepare(&mut self) {
+        let level_info = &self.settings.level;
+        // TODO: refactor this method to return Result<...>
+        if let Ok(pbm_image) = PBMImage::with_file(&level_info.map) {
+            self.map = pbm_image.transform_to_array(|x| x as i32);
+            println!("Level map was loaded");
+        }
+        self.player.position = Float2d::new(level_info.player_x, level_info.player_y);
+        self.player.movement_speed = level_info.player_movement_speed;
+        self.player.rotation_speed = level_info.player_rotation_speed;
+        self.state = State::Running;
+    }
+
+    fn process_events(&mut self, events: &[ControlEvent]) {
+        for event in events {
+            match event {
+                ControlEvent::Keyboard(code, is_pressed) => {
+                    self.controller_state.on_key_event(*code, *is_pressed)
+                }
+            }
+        }
+    }
+
     fn update(&mut self) {
         let elapsed = self.time.elapsed().as_secs_f32();
         self.player.movement(elapsed, &self.controller_state);
+        if self.has_collisions() {
+            self.player.undo_movement();
+        }
         self.time = Instant::now();
     }
 
@@ -216,33 +255,10 @@ impl Scene for Raycaster {
         self.state = State::Terminated;
     }
 
-    fn prepare(&mut self) {
-        let level_info = &self.settings.level;
-        // TODO: refactor this method to return Result<...>
-        if let Ok(pbm_image) = PBMImage::with_file(&level_info.map) {
-            self.map = pbm_image.transform_to_array(|x| x as i32);
-            println!("Level map was loaded");
-        }
-        self.player.position = Float2d::new(level_info.player_x, level_info.player_y);
-        self.player.movement_speed = level_info.player_movement_speed;
-        self.player.rotation_speed = level_info.player_rotation_speed;
-        self.state = State::Running;
-    }
-
     fn window_size(&self) -> Size2d<u32> {
         Size2d {
             width: self.settings.scene.screen_width as u32,
             height: self.settings.scene.screen_height as u32,
-        }
-    }
-
-    fn process_events(&mut self, events: &[ControlEvent]) {
-        for event in events {
-            match event {
-                ControlEvent::Keyboard(code, is_pressed) => {
-                    self.controller_state.on_key_event(*code, *is_pressed)
-                }
-            }
         }
     }
 
