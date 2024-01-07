@@ -1,10 +1,3 @@
-/// DoomLike Project, 2024
-///
-/// Simple PBM P1 image parser
-/// PBM images are used as a level representation for ray-caster sub project
-///
-/// This is a potential part of game engine library
-///
 use std::{fmt::Display, fs, path::Path};
 
 pub type PBMColorType = u8;

@@ -6,9 +6,6 @@ use crate::{
     settings::Settings,
 };
 
-/// DoomLike Project, 2024
-///
-
 pub enum State {
     Initial,
     Running,
@@ -71,7 +68,7 @@ struct Player {
 }
 
 impl Player {
-    fn movement(&mut self, delta_time: Float, controller_state: &ControllerState) {
+    fn do_movement(&mut self, delta_time: Float, controller_state: &ControllerState) {
         let sin_a = self.angle.sin();
         let cos_a = self.angle.cos();
         let (mut dx, mut dy) = (0.0, 0.0);
@@ -117,11 +114,14 @@ impl Player {
         let (x, y) = (self.position.x as i32, self.position.y as i32);
         let rect = DrawCommand::Rectangle(x - size / 2, y - size / 2, size as u32, size as u32);
         commands.push(rect);
+        commands.push(DrawCommand::ColorRGB(255, 255, 0)); // yellow
+
+        let length = 250.0;
         let line = DrawCommand::Line(
             x,
             y,
-            x + (100.0 * self.angle.cos()) as i32,
-            y + (100.0 * self.angle.sin()) as i32,
+            x + (length * self.angle.cos()) as i32,
+            y + (length * self.angle.sin()) as i32,
         );
         commands.push(line);
     }
@@ -216,7 +216,7 @@ impl Scene for Raycaster {
 
     fn update(&mut self) {
         let elapsed = self.time.elapsed().as_secs_f32();
-        self.player.movement(elapsed, &self.controller_state);
+        self.player.do_movement(elapsed, &self.controller_state);
         if self.has_collisions() {
             self.player.undo_movement();
         }

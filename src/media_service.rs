@@ -1,5 +1,3 @@
-/// DoomLike Project, 2024
-///
 use std::time::{Duration, Instant};
 
 use sdl2::{

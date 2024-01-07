@@ -1,7 +1,3 @@
-/// DoomLike Project, 2024
-///
-/// Ray-caster
-///
 mod media_service;
 use media_service::*;
 
