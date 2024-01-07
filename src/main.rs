@@ -8,6 +8,7 @@ use media_service::*;
 mod settings;
 use settings::*;
 
+mod common;
 mod pbm;
 
 mod vectors;

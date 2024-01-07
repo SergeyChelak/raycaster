@@ -1,7 +1,7 @@
 use crate::{
+    common::{Float, Float2d, Int, Size2d},
     pbm::PBMImage,
     settings::Settings,
-    vectors::{Float2d, Size2d},
 };
 
 /// DoomLike Project, 2024
@@ -50,13 +50,33 @@ impl ControllerState {
     }
 }
 
+#[derive(Default)]
+struct Player {
+    position: Float2d,
+    angle: Float,
+    movement_speed: Float,
+    rotation_speed: Float,
+}
+
+impl Player {
+    fn movement(&mut self, delta_time: Int) {
+        //
+    }
+
+    fn draw(&self, commands: &mut Vec<DrawCommand>) {
+        commands.push(DrawCommand::ColorRGB(255, 128, 128));
+        let rect = DrawCommand::Rectangle(self.position.x as i32, self.position.y as i32, 10, 10);
+        commands.push(rect);
+    }
+}
+
 pub trait Scene {
     /// could be considered as reset
     fn prepare(&mut self);
 
     fn process_events(&mut self, events: &[ControlEvent]);
     fn update(&mut self);
-    fn draw(&self) -> Vec<DrawCommand>;
+    fn draw(&self, commands: &mut Vec<DrawCommand>);
 
     /// system callbacks
     fn on_terminate(&mut self);
@@ -77,7 +97,7 @@ pub struct Raycaster {
     settings: Settings,
     map: LevelMap,
     state: State,
-    player_pos: Float2d,
+    player: Player,
     controller_state: ControllerState,
 }
 
@@ -87,14 +107,14 @@ impl Raycaster {
             settings,
             map: Vec::default(),
             state: State::default(),
-            player_pos: Float2d::default(),
+            player: Player::default(),
             controller_state: ControllerState::default(),
         }
     }
 
     fn collisions(&self, delta: &Float2d) -> bool {
         // wall collisions check
-        let pos = self.player_pos + delta;
+        let pos = self.player.position + delta;
         assert!(pos.x >= 0.0 && pos.y >= 0.0);
         let size = self.settings.scene.tile_size;
         let (col, row) = (pos.x as usize / size, pos.y as usize / size);
@@ -119,16 +139,13 @@ impl Scene for Raycaster {
             delta.x = step;
         }
         if !self.collisions(&delta) {
-            // self.player_pos.x += delta.x;
-            // self.player_pos.y += delta.y;
-            self.player_pos += delta;
+            self.player.position += delta;
         }
     }
 
-    fn draw(&self) -> Vec<DrawCommand> {
-        let mut objects = Vec::new();
+    fn draw(&self, commands: &mut Vec<DrawCommand>) {
         // map
-        objects.push(DrawCommand::ColorRGB(255, 255, 255));
+        commands.push(DrawCommand::ColorRGB(255, 255, 255));
         let tile_size = self.settings.scene.tile_size;
         for (r, row) in self.map.iter().enumerate() {
             for (c, val) in row.iter().enumerate() {
@@ -141,19 +158,13 @@ impl Scene for Raycaster {
                     tile_size as u32,
                     tile_size as u32,
                 );
-                objects.push(obj);
+                commands.push(obj);
             }
         }
         // player
-        {
-            objects.push(DrawCommand::ColorRGB(255, 128, 128));
-            let rect =
-                DrawCommand::Rectangle(self.player_pos.x as i32, self.player_pos.y as i32, 10, 10);
-            objects.push(rect);
-        }
+        self.player.draw(commands);
         // other objects
         // ...
-        objects
     }
 
     fn is_running(&self) -> bool {
@@ -171,7 +182,8 @@ impl Scene for Raycaster {
             self.map = pbm_image.transform_to_array(|x| x as i32);
             println!("Level map was loaded");
         }
-        self.player_pos = Float2d::new(level_info.player_x, level_info.player_y);
+        self.player.position = Float2d::new(level_info.player_x, level_info.player_y);
+
         self.state = State::Running;
     }
 

@@ -39,12 +39,14 @@ impl<'a> MediaServiceSDL<'a> {
         let mut canvas = window.into_canvas().build().map_err(|op| op.to_string())?;
         let mut frames = 0;
         let mut time = Instant::now();
+        let mut draw_commands = Vec::with_capacity(1000);
         while self.scene.is_running() {
+            draw_commands.clear();
             self.process_events();
             self.scene.update();
             canvas.set_draw_color(Color::BLACK);
             canvas.clear();
-            self.draw(&mut canvas);
+            self.draw(&mut canvas, &mut draw_commands);
             canvas.present();
             let duration = Duration::from_millis(50);
             ::std::thread::sleep(duration);
@@ -60,9 +62,10 @@ impl<'a> MediaServiceSDL<'a> {
         Ok(())
     }
 
-    fn draw(&self, canvas: &mut WindowCanvas) {
-        for command in self.scene.draw() {
-            match command {
+    fn draw(&self, canvas: &mut WindowCanvas, commands: &mut Vec<DrawCommand>) {
+        self.scene.draw(commands);
+        for command in commands {
+            match *command {
                 DrawCommand::ColorRGB(r, g, b) => {
                     canvas.set_draw_color(Color::RGB(r, g, b));
                 }
