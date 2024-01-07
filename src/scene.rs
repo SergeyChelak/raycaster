@@ -91,22 +91,37 @@ impl Raycaster {
             controller_state: ControllerState::default(),
         }
     }
+
+    fn collisions(&self, delta: &Float2d) -> bool {
+        // wall collisions check
+        let pos = self.player_pos + delta;
+        assert!(pos.x >= 0.0 && pos.y >= 0.0);
+        let size = self.settings.scene.tile_size;
+        let (col, row) = (pos.x as usize / size, pos.y as usize / size);
+        self.map[row][col] > 0
+    }
 }
 
 impl Scene for Raycaster {
     fn update(&mut self) {
+        let mut delta = Float2d::default();
         let step = 5.0;
         if self.controller_state.up_pressed {
-            self.player_pos.y -= step;
+            delta.y = -step;
         }
         if self.controller_state.down_pressed {
-            self.player_pos.y += step;
+            delta.y = step;
         }
         if self.controller_state.left_pressed {
-            self.player_pos.x -= step;
+            delta.x = -step;
         }
         if self.controller_state.right_pressed {
-            self.player_pos.x += step;
+            delta.x = step;
+        }
+        if !self.collisions(&delta) {
+            // self.player_pos.x += delta.x;
+            // self.player_pos.y += delta.y;
+            self.player_pos += delta;
         }
     }
 
