@@ -37,11 +37,11 @@ impl Player {
         let dist_cos = dist * cos_a;
         let dist_sin = dist * sin_a;
 
-        if controller_state.up_pressed {
+        if controller_state.forward_pressed {
             dx = dist_cos;
             dy = dist_sin;
         }
-        if controller_state.down_pressed {
+        if controller_state.backward_pressed {
             dx = -dist_cos;
             dy = -dist_sin;
         }
