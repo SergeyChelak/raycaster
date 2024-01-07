@@ -3,8 +3,12 @@
 use std::time::{Duration, Instant};
 
 use sdl2::{
-    event::Event, keyboard::Keycode, pixels::Color, rect::Rect, render::WindowCanvas, EventPump,
-    VideoSubsystem,
+    event::Event,
+    keyboard::Keycode,
+    pixels::Color,
+    rect::{Point, Rect},
+    render::WindowCanvas,
+    EventPump, VideoSubsystem,
 };
 
 use crate::scene::{ControlEvent, DrawCommand, Scene};
@@ -40,7 +44,9 @@ impl<'a> MediaServiceSDL<'a> {
         let mut frames = 0;
         let mut time = Instant::now();
         let mut draw_commands = Vec::with_capacity(1000);
+        let target_duration = (1000 / self.scene.target_fps()) as u128;
         while self.scene.is_running() {
+            let frame_start = Instant::now();
             draw_commands.clear();
             self.process_events();
             self.scene.update();
@@ -48,8 +54,6 @@ impl<'a> MediaServiceSDL<'a> {
             canvas.clear();
             self.draw(&mut canvas, &mut draw_commands);
             canvas.present();
-            let duration = Duration::from_millis(50);
-            ::std::thread::sleep(duration);
             frames += 1;
             let elapsed = time.elapsed();
             if elapsed.as_millis() > 1000 {
@@ -57,6 +61,11 @@ impl<'a> MediaServiceSDL<'a> {
                 let title = format!("FPS: {frames}");
                 _ = canvas.window_mut().set_title(&title);
                 frames = 0;
+            }
+            let suspend_ms = target_duration.saturating_sub(frame_start.elapsed().as_millis());
+            if suspend_ms > 0 {
+                let duration = Duration::from_millis(suspend_ms as u64);
+                ::std::thread::sleep(duration);
             }
         }
         Ok(())
@@ -72,6 +81,11 @@ impl<'a> MediaServiceSDL<'a> {
                 DrawCommand::Rectangle(x, y, w, h) => {
                     let rect = Rect::new(x, y, w, h);
                     _ = canvas.draw_rect(rect);
+                }
+                DrawCommand::Line(x1, y1, x2, y2) => {
+                    let start = Point::new(x1, y1);
+                    let end = Point::new(x2, y2);
+                    _ = canvas.draw_line(start, end)
                 }
             }
         }

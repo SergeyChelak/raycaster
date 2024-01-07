@@ -1,5 +1,7 @@
+use std::{f32::consts::PI, time::Instant};
+
 use crate::{
-    common::{Float, Float2d, Int, Size2d},
+    common::{Float, Float2d, Size2d},
     pbm::PBMImage,
     settings::Settings,
 };
@@ -29,6 +31,8 @@ struct ControllerState {
     down_pressed: bool,
     left_pressed: bool,
     right_pressed: bool,
+    rotate_left_pressed: bool,
+    rotate_right_pressed: bool,
 }
 
 impl ControllerState {
@@ -36,6 +40,10 @@ impl ControllerState {
     const KEYCODE_S: i32 = 115;
     const KEYCODE_A: i32 = 97;
     const KEYCODE_D: i32 = 100;
+    const KEYCODE_LEFT: i32 = 1073741904;
+    const KEYCODE_RIGHT: i32 = 1073741903;
+    // up = 1073741906
+    // down = 1073741905
 
     fn on_key_event(&mut self, key_code: i32, is_pressed: bool) {
         match key_code {
@@ -43,8 +51,11 @@ impl ControllerState {
             Self::KEYCODE_S => self.down_pressed = is_pressed,
             Self::KEYCODE_A => self.left_pressed = is_pressed,
             Self::KEYCODE_D => self.right_pressed = is_pressed,
+            Self::KEYCODE_LEFT => self.rotate_left_pressed = is_pressed,
+            Self::KEYCODE_RIGHT => self.rotate_right_pressed = is_pressed,
             _ => {
                 // don't care
+                // println!("Code {key_code}")
             }
         }
     }
@@ -59,14 +70,54 @@ struct Player {
 }
 
 impl Player {
-    fn movement(&mut self, delta_time: Int) {
-        //
+    fn movement(&mut self, delta_time: Float, controller_state: &ControllerState) {
+        let sin_a = self.angle.sin();
+        let cos_a = self.angle.cos();
+        let (mut dx, mut dy) = (0.0, 0.0);
+        let dist = self.movement_speed * delta_time;
+        let dist_cos = dist * cos_a;
+        let dist_sin = dist * sin_a;
+
+        if controller_state.up_pressed {
+            dx = dist_cos;
+            dy = dist_sin;
+        }
+        if controller_state.down_pressed {
+            dx = -dist_cos;
+            dy = -dist_sin;
+        }
+        if controller_state.left_pressed {
+            dx = dist_sin;
+            dy = -dist_cos;
+        }
+        if controller_state.right_pressed {
+            dx = -dist_sin;
+            dy = dist_cos;
+        }
+        self.position += Float2d::new(dx, dy);
+
+        if controller_state.rotate_left_pressed {
+            self.angle -= self.rotation_speed * delta_time;
+        }
+        if controller_state.rotate_right_pressed {
+            self.angle += self.rotation_speed * delta_time;
+        }
+        self.angle %= 2.0 * PI;
     }
 
     fn draw(&self, commands: &mut Vec<DrawCommand>) {
         commands.push(DrawCommand::ColorRGB(255, 128, 128));
-        let rect = DrawCommand::Rectangle(self.position.x as i32, self.position.y as i32, 10, 10);
+        let size = 10;
+        let (x, y) = (self.position.x as i32, self.position.y as i32);
+        let rect = DrawCommand::Rectangle(x - size / 2, y - size / 2, size as u32, size as u32);
         commands.push(rect);
+        let line = DrawCommand::Line(
+            x,
+            y,
+            x + (100.0 * self.angle.cos()) as i32,
+            y + (100.0 * self.angle.sin()) as i32,
+        );
+        commands.push(line);
     }
 }
 
@@ -84,6 +135,7 @@ pub trait Scene {
     /// state properties
     fn is_running(&self) -> bool;
     fn window_size(&self) -> Size2d<u32>;
+    fn target_fps(&self) -> usize;
 }
 
 type LevelMap = Vec<Vec<i32>>;
@@ -91,6 +143,7 @@ type LevelMap = Vec<Vec<i32>>;
 pub enum DrawCommand {
     ColorRGB(u8, u8, u8),
     Rectangle(i32, i32, u32, u32),
+    Line(i32, i32, i32, i32),
 }
 
 pub struct Raycaster {
@@ -99,6 +152,7 @@ pub struct Raycaster {
     state: State,
     player: Player,
     controller_state: ControllerState,
+    time: Instant,
 }
 
 impl Raycaster {
@@ -109,6 +163,7 @@ impl Raycaster {
             state: State::default(),
             player: Player::default(),
             controller_state: ControllerState::default(),
+            time: Instant::now(),
         }
     }
 
@@ -124,23 +179,9 @@ impl Raycaster {
 
 impl Scene for Raycaster {
     fn update(&mut self) {
-        let mut delta = Float2d::default();
-        let step = 5.0;
-        if self.controller_state.up_pressed {
-            delta.y = -step;
-        }
-        if self.controller_state.down_pressed {
-            delta.y = step;
-        }
-        if self.controller_state.left_pressed {
-            delta.x = -step;
-        }
-        if self.controller_state.right_pressed {
-            delta.x = step;
-        }
-        if !self.collisions(&delta) {
-            self.player.position += delta;
-        }
+        let elapsed = self.time.elapsed().as_secs_f32();
+        self.player.movement(elapsed, &self.controller_state);
+        self.time = Instant::now();
     }
 
     fn draw(&self, commands: &mut Vec<DrawCommand>) {
@@ -183,7 +224,8 @@ impl Scene for Raycaster {
             println!("Level map was loaded");
         }
         self.player.position = Float2d::new(level_info.player_x, level_info.player_y);
-
+        self.player.movement_speed = level_info.player_movement_speed;
+        self.player.rotation_speed = level_info.player_rotation_speed;
         self.state = State::Running;
     }
 
@@ -202,5 +244,9 @@ impl Scene for Raycaster {
                 }
             }
         }
+    }
+
+    fn target_fps(&self) -> usize {
+        self.settings.scene.fps
     }
 }

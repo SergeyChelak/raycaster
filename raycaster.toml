@@ -8,4 +8,5 @@ fps = 60
 map = "assets/map.pbm"
 player_x = 550
 player_y = 770
-player_speed = 0.01
+player_movement_speed = 100
+player_rotation_speed = 5

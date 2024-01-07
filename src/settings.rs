@@ -33,5 +33,6 @@ pub struct LevelInfo {
     pub map: String,
     pub player_x: f32,
     pub player_y: f32,
-    pub player_speed: f32,
+    pub player_movement_speed: f32,
+    pub player_rotation_speed: f32,
 }
