@@ -1,16 +1,18 @@
-mod media_service;
-use media_service::*;
+mod common;
+mod control;
+
+mod renderer;
+use renderer::*;
+
+mod scene;
+use scene::*;
 
 mod settings;
 use settings::*;
 
-mod common;
 mod pbm;
 
 mod vectors;
-
-mod scene;
-use scene::*;
 
 const SETTINGS_FILE_PATH: &str = "raycaster.toml";
 
@@ -19,7 +21,7 @@ fn main() -> Result<(), String> {
         return Err("Failed to read settings".to_string());
     };
     let mut scene = Scene::new(settings);
-    let mut media_service = MediaServiceSDL::new(&mut scene)?;
-    media_service.run()?;
+    let mut renderer = RendererSDL::new(&mut scene)?;
+    renderer.run()?;
     Ok(())
 }

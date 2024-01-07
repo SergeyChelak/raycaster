@@ -9,15 +9,16 @@ use sdl2::{
     EventPump, VideoSubsystem,
 };
 
-use crate::scene::{ControlEvent, DrawCommand, Scene};
+use crate::control::ControlEvent;
+use crate::scene::{DrawCommand, Scene};
 
-pub struct MediaServiceSDL<'a> {
+pub struct RendererSDL<'a> {
     video_subsystem: VideoSubsystem,
     event_pump: EventPump,
     scene: &'a mut Scene,
 }
 
-impl<'a> MediaServiceSDL<'a> {
+impl<'a> RendererSDL<'a> {
     pub fn new(scene: &'a mut Scene) -> Result<Self, String> {
         let context = sdl2::init()?;
         let video_subsystem = context.video()?;
