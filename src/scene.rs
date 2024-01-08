@@ -3,7 +3,7 @@ use std::time::Instant;
 use crate::{
     common::{DrawCommand, Float2d, Size2d},
     control::{ControlEvent, ControllerState},
-    pbm::PBMImage,
+    map::LevelMap,
     player::Player,
     raycaster::RayCaster,
     settings::Settings,
@@ -20,8 +20,6 @@ impl Default for State {
         Self::Initial
     }
 }
-
-type LevelMap = Vec<Vec<i32>>;
 
 pub struct Scene {
     settings: Settings,
@@ -47,9 +45,10 @@ impl Scene {
             opts.player_rotation_speed,
             opts.tile_size,
         );
+        let map = LevelMap::new(opts.tile_size);
         Self {
             settings,
-            map: Vec::default(),
+            map,
             state: State::default(),
             player,
             ray_caster,
@@ -60,10 +59,7 @@ impl Scene {
 
     pub fn prepare(&mut self) {
         let level_info = &self.settings.level;
-        // TODO: refactor this method to return Result<...>
-        if let Ok(pbm_image) = PBMImage::with_file(&level_info.map) {
-            self.map = pbm_image.transform_to_array(|x| x as i32);
-        }
+        self.map.prepare(&level_info.map);
         self.player
             .setup(Float2d::new(level_info.player_x, level_info.player_y), 0.0);
         self.state = State::Running;
@@ -91,24 +87,7 @@ impl Scene {
     }
 
     pub fn draw(&self, commands: &mut Vec<DrawCommand>) {
-        // map
-        commands.push(DrawCommand::ColorRGB(255, 255, 255));
-        let tile_size = self.settings.scene.tile_size;
-        for (r, row) in self.map.iter().enumerate() {
-            for (c, val) in row.iter().enumerate() {
-                if *val == 0 {
-                    continue;
-                }
-                let obj = DrawCommand::Rectangle(
-                    (c * tile_size) as i32,
-                    (r * tile_size) as i32,
-                    tile_size as u32,
-                    tile_size as u32,
-                );
-                commands.push(obj);
-            }
-        }
-        // other objects
+        self.map.draw(commands);
         self.ray_caster.draw(commands);
         self.player.draw(commands);
     }
@@ -116,16 +95,17 @@ impl Scene {
     fn has_collisions(&self) -> bool {
         // there is no real collider
         // check if player collides with wall to make implementation simpler as possible
-        let Float2d { x, y } = self.player.pos();
-        if x < 0.0 || y < 0.0 {
-            return false;
-        }
-        let (col, row) = (x as usize, y as usize);
-        if row > self.map.len() || col > self.map[0].len() {
-            false
-        } else {
-            self.map[row][col] > 0
-        }
+        // let Float2d { x, y } = self.player.pos();
+        // if x < 0.0 || y < 0.0 {
+        //     return false;
+        // }
+        // let (col, row) = (x as usize, y as usize);
+        // if row > self.map.len() || col > self.map[0].len() {
+        //     false
+        // } else {
+        //     self.map[row][col] > 0
+        // }
+        false
     }
 
     pub fn is_running(&self) -> bool {

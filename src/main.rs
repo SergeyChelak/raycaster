@@ -1,5 +1,6 @@
 mod common;
 mod control;
+mod map;
 mod pbm;
 mod player;
 mod raycaster;
