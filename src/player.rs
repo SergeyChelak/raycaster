@@ -30,7 +30,7 @@ impl Player {
         self.angle = angle;
     }
 
-    pub fn do_movement(
+    pub fn update(
         &mut self,
         delta_time: Float,
         controller_state: &ControllerState,
@@ -82,16 +82,15 @@ impl Player {
         );
         let rect = DrawCommand::Rectangle(x - size / 2, y - size / 2, size as u32, size as u32);
         commands.push(rect);
-        // commands.push(DrawCommand::ColorRGB(255, 255, 0)); // yellow
 
-        // let length = 5.0 * self.tile_size;
-        // let line = DrawCommand::Line(
-        //     x,
-        //     y,
-        //     x + (length * self.angle.cos()) as i32,
-        //     y + (length * self.angle.sin()) as i32,
-        // );
-        // commands.push(line);
+        let length = 3.0 * self.tile_size;
+        let line = DrawCommand::Line(
+            x,
+            y,
+            x + (length * self.angle.cos()) as i32,
+            y + (length * self.angle.sin()) as i32,
+        );
+        commands.push(line);
     }
 
     pub fn pos(&self) -> Float2d {

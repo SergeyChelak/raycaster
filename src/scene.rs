@@ -73,7 +73,7 @@ impl Scene {
     pub fn update(&mut self) {
         let elapsed = self.time.elapsed().as_secs_f32();
         self.player
-            .do_movement(elapsed, &self.controller_state, &self.map);
+            .update(elapsed, &self.controller_state, &self.map);
         self.ray_caster
             .update(self.player.pos(), self.player.angle(), &self.map);
         self.time = Instant::now();
