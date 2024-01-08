@@ -46,12 +46,13 @@ impl LevelMap {
     pub fn has_collision(&self, point: Float2d) -> bool {
         let Float2d { x, y } = point;
         if x < 0.0 || y < 0.0 {
-            println!("[WARN]: map location is out of bounds x:{x:.2}, y:{y:.2} (1)");
+            // println!("[WARN]: map location is out of bounds x:{x:.2}, y:{y:.2} (1)");
             return false;
         }
         let (col, row) = (point.x as usize, point.y as usize);
         if row >= self.content.len() || col >= self.content[0].len() {
-            println!("[WARN]: map location is out of bounds x:{x:.2}, y:{y:.2} (2)");
+            // println!("[WARN]: map location is out of bounds x:{x:.2}, y:{y:.2} (2)");
+            return false;
         }
         self.content[row][col] > 0
     }

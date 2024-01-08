@@ -3,6 +3,7 @@ use std::f32::consts::PI;
 use crate::{
     common::{DrawCommand, Float, Float2d},
     control::ControllerState,
+    map::LevelMap,
 };
 
 #[derive(Default)]
@@ -29,7 +30,12 @@ impl Player {
         self.angle = angle;
     }
 
-    pub fn do_movement(&mut self, delta_time: Float, controller_state: &ControllerState) {
+    pub fn do_movement(
+        &mut self,
+        delta_time: Float,
+        controller_state: &ControllerState,
+        map: &LevelMap,
+    ) {
         let sin_a = self.angle.sin();
         let cos_a = self.angle.cos();
         let (mut dx, mut dy) = (0.0, 0.0);
@@ -53,7 +59,10 @@ impl Player {
             dx = -dist_sin;
             dy = dist_cos;
         }
-        self.position += Float2d::new(dx, dy);
+        let position = self.position + Float2d::new(dx, dy);
+        if !map.has_collision(position) {
+            self.position = position;
+        }
 
         if controller_state.rotate_left_pressed {
             self.angle -= self.rotation_speed * delta_time;
@@ -73,16 +82,16 @@ impl Player {
         );
         let rect = DrawCommand::Rectangle(x - size / 2, y - size / 2, size as u32, size as u32);
         commands.push(rect);
-        commands.push(DrawCommand::ColorRGB(255, 255, 0)); // yellow
+        // commands.push(DrawCommand::ColorRGB(255, 255, 0)); // yellow
 
-        let length = 5.0 * self.tile_size;
-        let line = DrawCommand::Line(
-            x,
-            y,
-            x + (length * self.angle.cos()) as i32,
-            y + (length * self.angle.sin()) as i32,
-        );
-        commands.push(line);
+        // let length = 5.0 * self.tile_size;
+        // let line = DrawCommand::Line(
+        //     x,
+        //     y,
+        //     x + (length * self.angle.cos()) as i32,
+        //     y + (length * self.angle.sin()) as i32,
+        // );
+        // commands.push(line);
     }
 
     pub fn pos(&self) -> Float2d {

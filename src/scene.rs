@@ -1,4 +1,4 @@
-use std::time::Instant;
+use std::{f32::consts::PI, time::Instant};
 
 use crate::{
     common::{DrawCommand, Float2d, Size2d},
@@ -34,12 +34,7 @@ pub struct Scene {
 impl Scene {
     pub fn new(settings: Settings) -> Self {
         let opts = &settings.scene;
-        let ray_caster = RayCaster::new(
-            opts.fov,
-            opts.screen_width / 2,
-            opts.max_depth,
-            opts.tile_size,
-        );
+        let ray_caster = RayCaster::new(PI / 2.0, 150, opts.max_depth, opts.tile_size);
         let player = Player::new(
             opts.player_movement_speed,
             opts.player_rotation_speed,
@@ -77,9 +72,10 @@ impl Scene {
 
     pub fn update(&mut self) {
         let elapsed = self.time.elapsed().as_secs_f32();
-        self.player.do_movement(elapsed, &self.controller_state);
+        self.player
+            .do_movement(elapsed, &self.controller_state, &self.map);
         self.ray_caster
-            .update(self.player.pos(), self.player.angle());
+            .update(self.player.pos(), self.player.angle(), &self.map);
         self.time = Instant::now();
     }
 
