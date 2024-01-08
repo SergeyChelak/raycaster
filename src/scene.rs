@@ -1,4 +1,4 @@
-use std::{f32::consts::PI, time::Instant};
+use std::time::Instant;
 
 use crate::{
     common::{DrawCommand, Float2d, Size2d},
@@ -34,7 +34,7 @@ pub struct Scene {
 impl Scene {
     pub fn new(settings: Settings) -> Self {
         let opts = &settings.scene;
-        let ray_caster = RayCaster::new(PI / 2.0, 150, opts.max_depth, opts.tile_size);
+        let ray_caster = RayCaster::new(opts);
         let player = Player::new(
             opts.player_movement_speed,
             opts.player_rotation_speed,

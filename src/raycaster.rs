@@ -1,6 +1,7 @@
 use crate::{
     common::{DrawCommand, Float, Float2d},
     map::LevelMap,
+    settings::SceneSettings,
 };
 
 const TOL: Float = 1e-3;
@@ -12,33 +13,55 @@ struct Ray {
     position: Float2d,
 }
 
+struct Rect {
+    ray: usize,
+    projected_height: Float,
+    depth: Float,
+}
+
 #[derive(Default)]
 pub struct RayCaster {
     half_fov: Float,
+    screen_distance: Float,
+    scale: Float,
+    height: Float,
     rays: usize,
     delta_angle: Float,
     max_depth: usize,
     tile_size: Float,
     ray_buffer: Vec<Ray>,
+    rect_buffer: Vec<Rect>,
 }
 
 impl RayCaster {
-    pub fn new(fov: Float, rays: usize, max_depth: usize, tile_size: usize) -> Self {
+    pub fn new(opts: &SceneSettings) -> Self {
+        let half_fov = 0.5 * opts.fov;
+        let rays = opts.screen_width >> 1;
+        let delta_angle = opts.fov / rays as Float;
+
+        let screen_distance = opts.screen_width as Float * 0.5 * half_fov.tan();
+        let scale = opts.screen_width as Float / rays as Float;
+
         Self {
-            half_fov: fov * 0.5,
+            half_fov,
+            screen_distance,
+            scale,
+            height: opts.screen_height as Float,
             rays,
-            delta_angle: fov / rays as Float,
-            max_depth,
-            tile_size: tile_size as Float,
+            delta_angle,
+            max_depth: opts.max_depth,
+            tile_size: opts.tile_size as Float,
             ray_buffer: Vec::with_capacity(rays),
+            rect_buffer: Vec::with_capacity(rays),
         }
     }
 
     pub fn update(&mut self, pos: Float2d, angle: Float, map: &LevelMap) {
         self.ray_buffer.clear();
+        self.rect_buffer.clear();
         let (tile_x, tile_y) = (pos.x.floor(), pos.y.floor());
         let mut ray_angle = angle - self.half_fov + TOL;
-        for _ in 0..self.rays {
+        for ray in 0..self.rays {
             let sin_a = ray_angle.sin();
             let cos_a = ray_angle.cos();
             // horizontals
@@ -78,13 +101,22 @@ impl RayCaster {
                 vertical_depth += depth_delta;
             }
 
-            let depth = vertical_depth.min(horizontal_depth);
+            let mut depth = vertical_depth.min(horizontal_depth);
             self.ray_buffer.push(Ray {
                 depth,
                 sine: sin_a,
                 cosine: cos_a,
                 position: pos,
             });
+
+            depth *= (angle - ray_angle).cos();
+            let projected_height = self.screen_distance / (depth + TOL);
+            self.rect_buffer.push(Rect {
+                ray,
+                projected_height,
+                depth,
+            });
+
             ray_angle += self.delta_angle;
         }
     }
@@ -99,6 +131,18 @@ impl RayCaster {
                 y as i32,
                 (x + ray.depth * self.tile_size * ray.cosine) as i32,
                 (y + ray.depth * self.tile_size * ray.sine) as i32,
+            );
+            commands.push(cmd);
+        }
+
+        for rect in &self.rect_buffer {
+            let clr = (255.0 / (1.0 + rect.depth.powi(5) * 0.00002)) as u8;
+            commands.push(DrawCommand::ColorRGB(0, clr, clr));
+            let cmd = DrawCommand::Rectangle(
+                (rect.ray as Float * self.scale) as i32,
+                (0.5 * (self.height - rect.projected_height)) as i32,
+                self.scale as u32,
+                rect.projected_height as u32,
             );
             commands.push(cmd);
         }

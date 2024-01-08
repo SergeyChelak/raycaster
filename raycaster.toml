@@ -1,10 +1,10 @@
 [scene]
-tile_size = 20
-screen_height = 1000
-screen_width = 1000
+tile_size = 5
+screen_height = 900
+screen_width = 1600
 fps = 60
 player_movement_speed = 5
-player_rotation_speed = 5
+player_rotation_speed = 2
 max_depth = 50
 # Field of view
 fov = 1.0471975512
