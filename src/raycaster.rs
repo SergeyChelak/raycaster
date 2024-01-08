@@ -3,6 +3,8 @@ use crate::{
     map::LevelMap,
 };
 
+const TOL: Float = 1e-3;
+
 struct Ray {
     depth: Float,
     sine: Float,
@@ -35,7 +37,7 @@ impl RayCaster {
     pub fn update(&mut self, pos: Float2d, angle: Float, map: &LevelMap) {
         self.ray_buffer.clear();
         let (tile_x, tile_y) = (pos.x.floor(), pos.y.floor());
-        let mut ray_angle = angle - self.half_fov + 1e-3;
+        let mut ray_angle = angle - self.half_fov + TOL;
         for _ in 0..self.rays {
             let sin_a = ray_angle.sin();
             let cos_a = ray_angle.cos();
@@ -43,7 +45,7 @@ impl RayCaster {
             let (mut horizontal_y, dy) = if sin_a > 0.0 {
                 (tile_y + 1.0, 1.0)
             } else {
-                (tile_y - 1e-6, -1.0)
+                (tile_y - TOL, -1.0)
             };
             let mut horizontal_depth = (horizontal_y - pos.y) / sin_a;
             let mut horizontal_x = pos.x + horizontal_depth * cos_a;
@@ -57,12 +59,11 @@ impl RayCaster {
                 horizontal_y += dy;
                 horizontal_depth += depth_delta;
             }
-
             // verticals
             let (mut vertical_x, dx) = if cos_a > 0.0 {
                 (tile_x + 1.0, 1.0)
             } else {
-                (tile_x - 1e-6, -1.0)
+                (tile_x - TOL, -1.0)
             };
             let mut vertical_depth = (vertical_x - pos.x) / cos_a;
             let mut vertical_y = pos.y + vertical_depth * sin_a;

@@ -19,7 +19,7 @@ impl LevelMap {
 
     pub fn prepare(&mut self, level_path: &str) {
         // TODO: refactor this method to return Result<...>
-        if let Ok(pbm_image) = PBMImage::with_file(&level_path) {
+        if let Ok(pbm_image) = PBMImage::with_file(level_path) {
             self.content = pbm_image.transform_to_array(|x| x as i32);
         }
     }
