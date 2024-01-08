@@ -35,12 +35,24 @@ pub struct Scene {
 
 impl Scene {
     pub fn new(settings: Settings) -> Self {
+        let opts = &settings.scene;
+        let ray_caster = RayCaster::new(
+            opts.fov,
+            opts.screen_width / 2,
+            opts.max_depth,
+            opts.tile_size,
+        );
+        let player = Player::new(
+            opts.player_movement_speed,
+            opts.player_rotation_speed,
+            opts.tile_size,
+        );
         Self {
             settings,
             map: Vec::default(),
             state: State::default(),
-            player: Player::default(),
-            ray_caster: RayCaster::default(),
+            player,
+            ray_caster,
             controller_state: ControllerState::default(),
             time: Instant::now(),
         }
@@ -51,14 +63,9 @@ impl Scene {
         // TODO: refactor this method to return Result<...>
         if let Ok(pbm_image) = PBMImage::with_file(&level_info.map) {
             self.map = pbm_image.transform_to_array(|x| x as i32);
-            println!("Level map was loaded");
         }
-        self.player.setup(
-            Float2d::new(level_info.player_x, level_info.player_y),
-            level_info.player_movement_speed,
-            level_info.player_rotation_speed,
-        );
-        self.ray_caster.setup();
+        self.player
+            .setup(Float2d::new(level_info.player_x, level_info.player_y), 0.0);
         self.state = State::Running;
     }
 
@@ -78,6 +85,8 @@ impl Scene {
         if self.has_collisions() {
             self.player.undo_movement();
         }
+        self.ray_caster
+            .update(self.player.pos(), self.player.angle());
         self.time = Instant::now();
     }
 
@@ -99,10 +108,9 @@ impl Scene {
                 commands.push(obj);
             }
         }
-        // player
-        self.player.draw(commands);
         // other objects
-        // ...
+        self.ray_caster.draw(commands);
+        self.player.draw(commands);
     }
 
     fn has_collisions(&self) -> bool {
@@ -112,8 +120,7 @@ impl Scene {
         if x < 0.0 || y < 0.0 {
             return false;
         }
-        let size = self.settings.scene.tile_size;
-        let (col, row) = (x as usize / size, y as usize / size);
+        let (col, row) = (x as usize, y as usize);
         if row > self.map.len() || col > self.map[0].len() {
             false
         } else {

@@ -12,13 +12,22 @@ pub struct Player {
     angle: Float,
     movement_speed: Float,
     rotation_speed: Float,
+    tile_size: Float,
 }
 
 impl Player {
-    pub fn setup(&mut self, position: Float2d, movement_speed: Float, rotation_speed: Float) {
+    pub fn new(movement_speed: Float, rotation_speed: Float, tile_size: usize) -> Self {
+        Self {
+            movement_speed,
+            rotation_speed,
+            tile_size: tile_size as Float,
+            ..Self::default()
+        }
+    }
+
+    pub fn setup(&mut self, position: Float2d, angle: Float) {
         self.position = position;
-        self.movement_speed = movement_speed;
-        self.rotation_speed = rotation_speed;
+        self.angle = angle;
     }
 
     pub fn do_movement(&mut self, delta_time: Float, controller_state: &ControllerState) {
@@ -64,12 +73,15 @@ impl Player {
     pub fn draw(&self, commands: &mut Vec<DrawCommand>) {
         commands.push(DrawCommand::ColorRGB(255, 128, 128));
         let size = 10;
-        let (x, y) = (self.position.x as i32, self.position.y as i32);
+        let (x, y) = (
+            (self.position.x * self.tile_size) as i32,
+            (self.position.y * self.tile_size) as i32,
+        );
         let rect = DrawCommand::Rectangle(x - size / 2, y - size / 2, size as u32, size as u32);
         commands.push(rect);
         commands.push(DrawCommand::ColorRGB(255, 255, 0)); // yellow
 
-        let length = 250.0;
+        let length = 5.0 * self.tile_size;
         let line = DrawCommand::Line(
             x,
             y,
@@ -81,5 +93,9 @@ impl Player {
 
     pub fn pos(&self) -> Float2d {
         self.position
+    }
+
+    pub fn angle(&self) -> Float {
+        self.angle
     }
 }

@@ -3,10 +3,13 @@ tile_size = 20
 screen_height = 1000
 screen_width = 1000
 fps = 60
+player_movement_speed = 5
+player_rotation_speed = 5
+max_depth = 50
+# Field of view
+fov = 1.0471975512
 
 [level]
 map = "assets/map.pbm"
-player_x = 550
-player_y = 770
-player_movement_speed = 100
-player_rotation_speed = 5
+player_x = 25.5
+player_y = 25.5
