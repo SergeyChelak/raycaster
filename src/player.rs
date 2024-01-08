@@ -7,7 +7,6 @@ use crate::{
 
 #[derive(Default)]
 pub struct Player {
-    prev_position: Float2d,
     position: Float2d,
     angle: Float,
     movement_speed: Float,
@@ -54,7 +53,6 @@ impl Player {
             dx = -dist_sin;
             dy = dist_cos;
         }
-        self.prev_position = self.position;
         self.position += Float2d::new(dx, dy);
 
         if controller_state.rotate_left_pressed {
@@ -64,10 +62,6 @@ impl Player {
             self.angle += self.rotation_speed * delta_time;
         }
         self.angle %= 2.0 * PI;
-    }
-
-    pub fn undo_movement(&mut self) {
-        self.position = self.prev_position;
     }
 
     pub fn draw(&self, commands: &mut Vec<DrawCommand>) {

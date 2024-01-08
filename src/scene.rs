@@ -78,9 +78,6 @@ impl Scene {
     pub fn update(&mut self) {
         let elapsed = self.time.elapsed().as_secs_f32();
         self.player.do_movement(elapsed, &self.controller_state);
-        if self.has_collisions() {
-            self.player.undo_movement();
-        }
         self.ray_caster
             .update(self.player.pos(), self.player.angle());
         self.time = Instant::now();
@@ -90,22 +87,6 @@ impl Scene {
         self.map.draw(commands);
         self.ray_caster.draw(commands);
         self.player.draw(commands);
-    }
-
-    fn has_collisions(&self) -> bool {
-        // there is no real collider
-        // check if player collides with wall to make implementation simpler as possible
-        // let Float2d { x, y } = self.player.pos();
-        // if x < 0.0 || y < 0.0 {
-        //     return false;
-        // }
-        // let (col, row) = (x as usize, y as usize);
-        // if row > self.map.len() || col > self.map[0].len() {
-        //     false
-        // } else {
-        //     self.map[row][col] > 0
-        // }
-        false
     }
 
     pub fn is_running(&self) -> bool {
