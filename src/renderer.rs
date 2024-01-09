@@ -1,16 +1,21 @@
-use std::time::{Duration, Instant};
+use std::{
+    collections::HashMap,
+    time::{Duration, Instant},
+};
 
 use sdl2::{
     event::Event,
+    image::LoadTexture,
     keyboard::Keycode,
     pixels::Color,
     rect::{Point, Rect},
-    render::WindowCanvas,
+    render::{Texture, TextureCreator, WindowCanvas},
+    video::WindowContext,
     EventPump, VideoSubsystem,
 };
 
-use crate::scene::Scene;
 use crate::{common::DrawCommand, control::ControlEvent};
+use crate::{common::Float, scene::Scene};
 
 pub struct RendererSDL<'a> {
     video_subsystem: VideoSubsystem,
@@ -40,6 +45,8 @@ impl<'a> RendererSDL<'a> {
             .build()
             .map_err(|op| op.to_string())?;
         let mut canvas = window.into_canvas().build().map_err(|op| op.to_string())?;
+        let texture_creator = canvas.texture_creator();
+        let textures = self.load_textures(&texture_creator)?;
         let mut frames = 0;
         let mut time = Instant::now();
         let mut draw_commands = Vec::with_capacity(1000);
@@ -51,7 +58,7 @@ impl<'a> RendererSDL<'a> {
             self.scene.update();
             canvas.set_draw_color(Color::BLACK);
             canvas.clear();
-            self.draw(&mut canvas, &mut draw_commands);
+            self.draw(&mut canvas, &textures, &mut draw_commands);
             canvas.present();
             frames += 1;
             let elapsed = time.elapsed();
@@ -70,7 +77,12 @@ impl<'a> RendererSDL<'a> {
         Ok(())
     }
 
-    fn draw(&self, canvas: &mut WindowCanvas, commands: &mut Vec<DrawCommand>) {
+    fn draw(
+        &self,
+        canvas: &mut WindowCanvas,
+        textures: &HashMap<i32, Texture>,
+        commands: &mut Vec<DrawCommand>,
+    ) {
         self.scene.draw(commands);
         for command in commands {
             match *command {
@@ -85,6 +97,15 @@ impl<'a> RendererSDL<'a> {
                     let start = Point::new(x1, y1);
                     let end = Point::new(x2, y2);
                     _ = canvas.draw_line(start, end)
+                }
+                DrawCommand::Texture(x, y, offset, width, projected_height, id) => {
+                    let texture = textures.get(&id).expect("Not loaded");
+                    let query = texture.query();
+                    let (w, h) = (query.width, query.height);
+                    let src =
+                        Rect::new((offset * (w as Float - width as Float)) as i32, 0, width, h);
+                    let dst = Rect::new(x, y, width, projected_height);
+                    _ = canvas.copy(texture, src, dst);
                 }
             }
         }
@@ -115,5 +136,22 @@ impl<'a> RendererSDL<'a> {
             }
         }
         self.scene.process_events(&events);
+    }
+
+    fn load_textures<'l>(
+        &mut self,
+        texture_creator: &'l TextureCreator<WindowContext>,
+    ) -> Result<HashMap<i32, Texture<'l>>, String> {
+        let folder = "assets/textures";
+        let mut textures = HashMap::new();
+        for i in 1..=5 {
+            let path = format!("{folder}/{i}.png");
+            let Ok(texture) = texture_creator.load_texture(&path) else {
+                println!("[ERR] failed to load texture {path}");
+                continue;
+            };
+            textures.insert(i, texture);
+        }
+        Ok(textures)
     }
 }

@@ -56,4 +56,10 @@ impl LevelMap {
         }
         self.content[row][col] > 0
     }
+
+    pub fn texture_id(&self, point: Float2d) -> i32 {
+        // no range check!!
+        let (col, row) = (point.x as usize, point.y as usize);
+        self.content[row][col]
+    }
 }

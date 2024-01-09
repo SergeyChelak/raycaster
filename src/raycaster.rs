@@ -6,17 +6,10 @@ use crate::{
 
 const TOL: Float = 1e-3;
 
-struct Ray {
-    depth: Float,
-    sine: Float,
-    cosine: Float,
-    position: Float2d,
-}
-
 struct Rect {
-    ray: usize,
     projected_height: Float,
-    depth: Float,
+    texture_id: i32,
+    texture_offset: Float,
 }
 
 #[derive(Default)]
@@ -28,8 +21,6 @@ pub struct RayCaster {
     rays: usize,
     delta_angle: Float,
     max_depth: usize,
-    tile_size: Float,
-    ray_buffer: Vec<Ray>,
     rect_buffer: Vec<Rect>,
 }
 
@@ -50,18 +41,17 @@ impl RayCaster {
             rays,
             delta_angle,
             max_depth: opts.max_depth,
-            tile_size: opts.tile_size as Float,
-            ray_buffer: Vec::with_capacity(rays),
             rect_buffer: Vec::with_capacity(rays),
         }
     }
 
     pub fn update(&mut self, pos: Float2d, angle: Float, map: &LevelMap) {
-        self.ray_buffer.clear();
         self.rect_buffer.clear();
+        // default textures
+        let (mut texture_id_vertical, mut texture_id_horizontal) = (1, 1);
         let (tile_x, tile_y) = (pos.x.floor(), pos.y.floor());
         let mut ray_angle = angle - self.half_fov + TOL;
-        for ray in 0..self.rays {
+        for _ in 0..self.rays {
             let sin_a = ray_angle.sin();
             let cos_a = ray_angle.cos();
             // horizontals
@@ -75,7 +65,9 @@ impl RayCaster {
             let depth_delta = dy / sin_a;
             let dx = depth_delta * cos_a;
             for _ in 0..self.max_depth {
-                if map.has_collision(Float2d::new(horizontal_x, horizontal_y)) {
+                let point = Float2d::new(horizontal_x, horizontal_y);
+                if map.has_collision(point) {
+                    texture_id_horizontal = map.texture_id(point);
                     break;
                 }
                 horizontal_x += dx;
@@ -93,7 +85,9 @@ impl RayCaster {
             let depth_delta = dx / cos_a;
             let dy = depth_delta * sin_a;
             for _ in 0..self.max_depth {
-                if map.has_collision(Float2d::new(vertical_x, vertical_y)) {
+                let point = Float2d::new(vertical_x, vertical_y);
+                if map.has_collision(point) {
+                    texture_id_vertical = map.texture_id(point);
                     break;
                 }
                 vertical_x += dx;
@@ -101,20 +95,31 @@ impl RayCaster {
                 vertical_depth += depth_delta;
             }
 
-            let mut depth = vertical_depth.min(horizontal_depth);
-            self.ray_buffer.push(Ray {
-                depth,
-                sine: sin_a,
-                cosine: cos_a,
-                position: pos,
-            });
-
+            let (mut depth, texture_id, offset) = if vertical_depth < horizontal_depth {
+                vertical_y %= 1.0;
+                let offset = if cos_a > 0.0 {
+                    vertical_y
+                } else {
+                    1.0 - vertical_y
+                };
+                (vertical_depth, texture_id_vertical, offset)
+            } else {
+                horizontal_x %= 1.0;
+                let offset = if sin_a > 0.0 {
+                    1.0 - horizontal_x
+                } else {
+                    horizontal_x
+                };
+                (horizontal_depth, texture_id_horizontal, offset)
+            };
+            // get rid of fishbowl effect
             depth *= (angle - ray_angle).cos();
+
             let projected_height = self.screen_distance / (depth + TOL);
             self.rect_buffer.push(Rect {
-                ray,
                 projected_height,
-                depth,
+                texture_id,
+                texture_offset: offset,
             });
 
             ray_angle += self.delta_angle;
@@ -122,27 +127,14 @@ impl RayCaster {
     }
 
     pub fn draw(&self, commands: &mut Vec<DrawCommand>) {
-        commands.push(DrawCommand::ColorRGB(0, 127, 127));
-        for ray in &self.ray_buffer {
-            let x = ray.position.x * self.tile_size;
-            let y = ray.position.y * self.tile_size;
-            let cmd = DrawCommand::Line(
-                x as i32,
-                y as i32,
-                (x + ray.depth * self.tile_size * ray.cosine) as i32,
-                (y + ray.depth * self.tile_size * ray.sine) as i32,
-            );
-            commands.push(cmd);
-        }
-
-        for rect in &self.rect_buffer {
-            let clr = (255.0 / (1.0 + rect.depth.powi(5) * 0.00002)) as u8;
-            commands.push(DrawCommand::ColorRGB(0, clr, clr));
-            let cmd = DrawCommand::Rectangle(
-                (rect.ray as Float * self.scale) as i32,
+        for (ray, rect) in self.rect_buffer.iter().enumerate() {
+            let cmd = DrawCommand::Texture(
+                (ray as Float * self.scale) as i32,
                 (0.5 * (self.height - rect.projected_height)) as i32,
+                rect.texture_offset,
                 self.scale as u32,
                 rect.projected_height as u32,
+                rect.texture_id,
             );
             commands.push(cmd);
         }

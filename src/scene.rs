@@ -80,8 +80,8 @@ impl Scene {
     }
 
     pub fn draw(&self, commands: &mut Vec<DrawCommand>) {
-        self.map.draw(commands);
         self.ray_caster.draw(commands);
+        self.map.draw(commands);
         self.player.draw(commands);
     }
 
