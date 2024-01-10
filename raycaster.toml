@@ -10,7 +10,6 @@ fov = 1.0471975512
 [player]
 player_movement_speed = 5
 player_rotation_speed = 2
-player_size = 1
 
 [level]
 map = "assets/map.pbm"

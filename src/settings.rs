@@ -31,7 +31,6 @@ pub struct SceneSettings {
 pub struct PlayerSettings {
     pub player_movement_speed: f32,
     pub player_rotation_speed: f32,
-    pub player_size: f32,
 }
 
 #[derive(Default, Deserialize)]
