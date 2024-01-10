@@ -1,5 +1,6 @@
 pub enum ControlEvent {
-    Keyboard(i32, bool), // key code | is pressed
+    Keyboard(i32, bool),             // key code | is pressed
+    MouseMotion(i32, i32, i32, i32), // x, y, x relative, y relative
 }
 
 #[derive(Default)]
@@ -10,6 +11,7 @@ pub struct ControllerState {
     pub right_pressed: bool,
     pub rotate_left_pressed: bool,
     pub rotate_right_pressed: bool,
+    pub mouse_x_relative: i32,
 }
 
 impl ControllerState {
@@ -35,5 +37,9 @@ impl ControllerState {
                 // println!("Code {key_code}")
             }
         }
+    }
+
+    pub fn reset_relative_values(&mut self) {
+        self.mouse_x_relative = 0;
     }
 }

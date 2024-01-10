@@ -66,6 +66,9 @@ impl Scene {
                 ControlEvent::Keyboard(code, is_pressed) => {
                     self.controller_state.on_key_event(*code, *is_pressed)
                 }
+                ControlEvent::MouseMotion(_x, _y, x_rel, _y_rel) => {
+                    self.controller_state.mouse_x_relative = *x_rel;
+                }
             }
         }
     }
@@ -77,6 +80,7 @@ impl Scene {
         self.ray_caster
             .update(self.player.pos(), self.player.angle(), &self.map);
         self.background.update(elapsed, self.player.angle());
+        self.controller_state.reset_relative_values();
         self.time = Instant::now();
     }
 

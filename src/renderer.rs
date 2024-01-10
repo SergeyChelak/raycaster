@@ -33,6 +33,7 @@ impl<'a> RendererSDL<'a> {
             .position_centered()
             .build()
             .map_err(|op| op.to_string())?;
+        context.mouse().show_cursor(false);
         let canvas = window.into_canvas().build().map_err(|op| op.to_string())?;
         let event_pump = context.event_pump()?;
         Ok(Self {
@@ -79,7 +80,6 @@ impl<'a> RendererSDL<'a> {
         commands: &mut Vec<DrawCommand>,
     ) -> Result<(), String> {
         self.scene.draw(commands);
-        self.canvas.set_draw_color(Color::BLACK);
         self.canvas.clear();
 
         for command in commands {
@@ -152,6 +152,11 @@ impl<'a> RendererSDL<'a> {
                     ..
                 } => {
                     events.push(ControlEvent::Keyboard(keycode as i32, false));
+                }
+                Event::MouseMotion {
+                    x, y, xrel, yrel, ..
+                } => {
+                    events.push(ControlEvent::MouseMotion(x, y, xrel, yrel));
                 }
                 _ => {}
             }

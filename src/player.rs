@@ -65,6 +65,9 @@ impl Player {
             self.position = position;
         }
 
+        // TODO: add mouse sensitivity config parameter
+        self.angle += controller_state.mouse_x_relative as Float * delta_time;
+
         if controller_state.rotate_left_pressed {
             self.angle -= self.rotation_speed * delta_time;
         }

@@ -11,7 +11,7 @@ impl Background {
     pub fn new(scene_size: ScreenSize) -> Self {
         Self {
             scene_size,
-            offset: 100.0,
+            offset: 0.0,
         }
     }
 
@@ -23,6 +23,7 @@ impl Background {
         // sky
         commands.push(DrawCommand::SkyTexture(TEXTURE_ID_SKY, self.offset));
         // floor
+        // TODO: move floor color to settings or level data
         commands.push(DrawCommand::ColorRGB(30, 30, 30));
         let obj = DrawCommand::FillRectangle(
             0,
