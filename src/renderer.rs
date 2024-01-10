@@ -81,6 +81,7 @@ impl<'a> RendererSDL<'a> {
         self.scene.draw(commands);
         self.canvas.set_draw_color(Color::BLACK);
         self.canvas.clear();
+
         for command in commands {
             match *command {
                 DrawCommand::ColorRGB(r, g, b) => {
@@ -89,6 +90,10 @@ impl<'a> RendererSDL<'a> {
                 DrawCommand::Rectangle(x, y, w, h) => {
                     let rect = Rect::new(x, y, w, h);
                     self.canvas.draw_rect(rect)?;
+                }
+                DrawCommand::FillRectangle(x, y, w, h) => {
+                    let rect = Rect::new(x, y, w, h);
+                    self.canvas.fill_rect(rect)?;
                 }
                 DrawCommand::Line(x1, y1, x2, y2) => {
                     let start = Point::new(x1, y1);
@@ -108,6 +113,17 @@ impl<'a> RendererSDL<'a> {
                     let (w, h) = (query.width, query.height);
                     let src =
                         Rect::new((offset * (w as Float - width as Float)) as i32, 0, width, h);
+                    self.canvas.copy(texture, src, dst)?;
+                }
+                DrawCommand::SkyTexture(id, ..) => {
+                    let Some(texture) = textures.get(&id) else {
+                        continue;
+                    };
+                    let query = texture.query();
+                    let (w, h) = (query.width, query.height);
+                    let src = Rect::new(0, 0, w, h);
+                    let scene_size = self.scene.window_size();
+                    let dst = Rect::new(0, 0, scene_size.width, scene_size.height >> 1);
                     self.canvas.copy(texture, src, dst)?;
                 }
             }
@@ -143,19 +159,20 @@ impl<'a> RendererSDL<'a> {
         self.scene.process_events(&events);
     }
 
-    fn load_textures<'l>(
-        texture_creator: &'l TextureCreator<WindowContext>,
-    ) -> Result<HashMap<i32, Texture<'l>>, String> {
+    fn load_textures(
+        texture_creator: &TextureCreator<WindowContext>,
+    ) -> Result<HashMap<i32, Texture>, String> {
         let assets = [
             (1, "assets/textures/1.png"),
             (2, "assets/textures/2.png"),
             (3, "assets/textures/3.png"),
             (4, "assets/textures/4.png"),
             (5, "assets/textures/5.png"),
+            (999, "assets/textures/sky.png"),
         ];
         let mut textures = HashMap::new();
         for (id, path) in assets {
-            let Ok(texture) = texture_creator.load_texture(&path) else {
+            let Ok(texture) = texture_creator.load_texture(path) else {
                 println!("[ERR] failed to load texture with id: {id} at '{path}'");
                 continue;
             };

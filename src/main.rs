@@ -1,3 +1,4 @@
+mod background;
 mod common;
 mod control;
 mod map;

@@ -2,6 +2,8 @@ use std::{fs, io, path::Path};
 
 use serde_derive::Deserialize;
 
+use crate::common::{ScreenSize, Size2d};
+
 #[derive(Default, Deserialize)]
 pub struct Settings {
     pub scene: SceneSettings,
@@ -25,6 +27,15 @@ pub struct SceneSettings {
     pub fps: usize,
     pub max_depth: usize,
     pub fov: f32,
+}
+
+impl SceneSettings {
+    pub fn screen_size(&self) -> ScreenSize {
+        Size2d {
+            width: self.screen_width as u32,
+            height: self.screen_height as u32,
+        }
+    }
 }
 
 #[derive(Default, Deserialize)]

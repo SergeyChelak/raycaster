@@ -1,6 +1,7 @@
 use std::time::Instant;
 
 use crate::{
+    background::Background,
     common::{DrawCommand, Float2d, Size2d},
     control::{ControlEvent, ControllerState},
     map::LevelMap,
@@ -27,6 +28,7 @@ pub struct Scene {
     state: State,
     player: Player,
     ray_caster: RayCaster,
+    background: Background,
     controller_state: ControllerState,
     time: Instant,
 }
@@ -37,12 +39,14 @@ impl Scene {
         let ray_caster = RayCaster::new(opts);
         let player = Player::new(&settings.player, opts.tile_size);
         let map = LevelMap::new(opts.tile_size);
+        let background = Background::new(opts.screen_size());
         Self {
             settings,
             map,
             state: State::default(),
             player,
             ray_caster,
+            background,
             controller_state: ControllerState::default(),
             time: Instant::now(),
         }
@@ -72,13 +76,18 @@ impl Scene {
             .update(elapsed, &self.controller_state, &self.map);
         self.ray_caster
             .update(self.player.pos(), self.player.angle(), &self.map);
+        self.background.update(elapsed, self.player.angle());
         self.time = Instant::now();
     }
 
     pub fn draw(&self, commands: &mut Vec<DrawCommand>) {
+        self.background.draw(commands);
         self.ray_caster.draw(commands);
-        self.map.draw(commands);
-        self.player.draw(commands);
+        // TODO: refactor as mini map
+        {
+            self.map.draw(commands);
+            self.player.draw(commands);
+        }
     }
 
     pub fn is_running(&self) -> bool {
@@ -90,10 +99,7 @@ impl Scene {
     }
 
     pub fn window_size(&self) -> Size2d<u32> {
-        Size2d {
-            width: self.settings.scene.screen_width as u32,
-            height: self.settings.scene.screen_height as u32,
-        }
+        self.settings.scene.screen_size()
     }
 
     pub fn target_fps(&self) -> usize {
