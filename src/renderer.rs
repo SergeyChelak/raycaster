@@ -11,14 +11,14 @@ use sdl2::{
     rect::{Point, Rect},
     render::{Texture, TextureCreator, WindowCanvas},
     video::WindowContext,
-    EventPump, VideoSubsystem,
+    EventPump,
 };
 
 use crate::{common::DrawCommand, control::ControlEvent};
 use crate::{common::Float, scene::Scene};
 
 pub struct RendererSDL<'a> {
-    video_subsystem: VideoSubsystem,
+    canvas: WindowCanvas,
     event_pump: EventPump,
     scene: &'a mut Scene,
 }
@@ -27,25 +27,24 @@ impl<'a> RendererSDL<'a> {
     pub fn new(scene: &'a mut Scene) -> Result<Self, String> {
         let context = sdl2::init()?;
         let video_subsystem = context.video()?;
+        let window_size = scene.window_size();
+        let window = video_subsystem
+            .window("FPS: ??", window_size.width, window_size.height)
+            .position_centered()
+            .build()
+            .map_err(|op| op.to_string())?;
+        let canvas = window.into_canvas().build().map_err(|op| op.to_string())?;
         let event_pump = context.event_pump()?;
         scene.prepare();
         Ok(Self {
-            video_subsystem,
+            canvas,
             event_pump,
             scene,
         })
     }
 
     pub fn run(&mut self) -> Result<(), String> {
-        let window_size = self.scene.window_size();
-        let window = self
-            .video_subsystem
-            .window("FPS: ??", window_size.width, window_size.height)
-            .position_centered()
-            .build()
-            .map_err(|op| op.to_string())?;
-        let mut canvas = window.into_canvas().build().map_err(|op| op.to_string())?;
-        let texture_creator = canvas.texture_creator();
+        let texture_creator = self.canvas.texture_creator();
         let textures = self.load_textures(&texture_creator)?;
         let mut frames = 0;
         let mut time = Instant::now();
@@ -56,16 +55,13 @@ impl<'a> RendererSDL<'a> {
             draw_commands.clear();
             self.process_events();
             self.scene.update();
-            canvas.set_draw_color(Color::BLACK);
-            canvas.clear();
-            self.draw(&mut canvas, &textures, &mut draw_commands);
-            canvas.present();
+            self.draw(&textures, &mut draw_commands)?;
             frames += 1;
             let elapsed = time.elapsed();
             if elapsed.as_millis() > 1000 {
                 time = Instant::now();
                 let title = format!("FPS: {frames}");
-                _ = canvas.window_mut().set_title(&title);
+                _ = self.canvas.window_mut().set_title(&title);
                 frames = 0;
             }
             let suspend_ms = target_duration.saturating_sub(frame_start.elapsed().as_millis());
@@ -78,25 +74,26 @@ impl<'a> RendererSDL<'a> {
     }
 
     fn draw(
-        &self,
-        canvas: &mut WindowCanvas,
+        &mut self,
         textures: &HashMap<i32, Texture>,
         commands: &mut Vec<DrawCommand>,
-    ) {
+    ) -> Result<(), String> {
         self.scene.draw(commands);
+        self.canvas.set_draw_color(Color::BLACK);
+        self.canvas.clear();
         for command in commands {
             match *command {
                 DrawCommand::ColorRGB(r, g, b) => {
-                    canvas.set_draw_color(Color::RGB(r, g, b));
+                    self.canvas.set_draw_color(Color::RGB(r, g, b));
                 }
                 DrawCommand::Rectangle(x, y, w, h) => {
                     let rect = Rect::new(x, y, w, h);
-                    _ = canvas.draw_rect(rect);
+                    self.canvas.draw_rect(rect)?;
                 }
                 DrawCommand::Line(x1, y1, x2, y2) => {
                     let start = Point::new(x1, y1);
                     let end = Point::new(x2, y2);
-                    _ = canvas.draw_line(start, end)
+                    self.canvas.draw_line(start, end)?;
                 }
                 DrawCommand::Texture(x, y, offset, width, projected_height, id) => {
                     let texture = textures.get(&id).expect("Not loaded");
@@ -105,10 +102,12 @@ impl<'a> RendererSDL<'a> {
                     let src =
                         Rect::new((offset * (w as Float - width as Float)) as i32, 0, width, h);
                     let dst = Rect::new(x, y, width, projected_height);
-                    _ = canvas.copy(texture, src, dst);
+                    self.canvas.copy(texture, src, dst)?;
                 }
             }
         }
+        self.canvas.present();
+        Ok(())
     }
 
     fn process_events(&mut self) {
