@@ -5,11 +5,13 @@ use crate::{
 };
 
 const TOL: Float = 1e-3;
+const DEFAULT_TEXTURE_ID: i32 = 1;
 
 struct Rect {
     projected_height: Float,
     texture_id: i32,
     texture_offset: Float,
+    depth: Float,
 }
 
 #[derive(Default)]
@@ -47,8 +49,9 @@ impl RayCaster {
 
     pub fn update(&mut self, pos: Float2d, angle: Float, map: &LevelMap) {
         self.rect_buffer.clear();
-        // default textures
-        let (mut texture_id_vertical, mut texture_id_horizontal) = (1, 1);
+        // default texture ids
+        let (mut texture_id_vertical, mut texture_id_horizontal) =
+            (DEFAULT_TEXTURE_ID, DEFAULT_TEXTURE_ID);
         let (tile_x, tile_y) = (pos.x.floor(), pos.y.floor());
         let mut ray_angle = angle - self.half_fov + TOL;
         for _ in 0..self.rays {
@@ -120,6 +123,7 @@ impl RayCaster {
                 projected_height,
                 texture_id,
                 texture_offset: offset,
+                depth,
             });
 
             ray_angle += self.delta_angle;
@@ -134,6 +138,7 @@ impl RayCaster {
                 rect.texture_offset,
                 self.scale as u32,
                 rect.projected_height as u32,
+                rect.depth,
                 rect.texture_id,
             );
             commands.push(cmd);

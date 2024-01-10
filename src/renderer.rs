@@ -35,7 +35,6 @@ impl<'a> RendererSDL<'a> {
             .map_err(|op| op.to_string())?;
         let canvas = window.into_canvas().build().map_err(|op| op.to_string())?;
         let event_pump = context.event_pump()?;
-        scene.prepare();
         Ok(Self {
             canvas,
             event_pump,
@@ -44,8 +43,9 @@ impl<'a> RendererSDL<'a> {
     }
 
     pub fn run(&mut self) -> Result<(), String> {
+        self.scene.prepare();
         let texture_creator = self.canvas.texture_creator();
-        let textures = self.load_textures(&texture_creator)?;
+        let textures = Self::load_textures(&texture_creator)?;
         let mut frames = 0;
         let mut time = Instant::now();
         let mut draw_commands = Vec::with_capacity(1000);
@@ -95,13 +95,19 @@ impl<'a> RendererSDL<'a> {
                     let end = Point::new(x2, y2);
                     self.canvas.draw_line(start, end)?;
                 }
-                DrawCommand::Texture(x, y, offset, width, projected_height, id) => {
-                    let texture = textures.get(&id).expect("Not loaded");
+                DrawCommand::Texture(x, y, offset, width, projected_height, depth, id) => {
+                    let dst = Rect::new(x, y, width, projected_height);
+                    let Some(texture) = textures.get(&id) else {
+                        // draw gray-scale bars in case of missing texture
+                        let clr = (255.0 / (1.0 + depth.powi(5) * 0.00002)) as u8;
+                        self.canvas.set_draw_color(Color::RGB(clr, clr, clr));
+                        self.canvas.draw_rect(dst)?;
+                        continue;
+                    };
                     let query = texture.query();
                     let (w, h) = (query.width, query.height);
                     let src =
                         Rect::new((offset * (w as Float - width as Float)) as i32, 0, width, h);
-                    let dst = Rect::new(x, y, width, projected_height);
                     self.canvas.copy(texture, src, dst)?;
                 }
             }
@@ -138,18 +144,22 @@ impl<'a> RendererSDL<'a> {
     }
 
     fn load_textures<'l>(
-        &mut self,
         texture_creator: &'l TextureCreator<WindowContext>,
     ) -> Result<HashMap<i32, Texture<'l>>, String> {
-        let folder = "assets/textures";
+        let assets = [
+            (1, "assets/textures/1.png"),
+            (2, "assets/textures/2.png"),
+            (3, "assets/textures/3.png"),
+            (4, "assets/textures/4.png"),
+            (5, "assets/textures/5.png"),
+        ];
         let mut textures = HashMap::new();
-        for i in 1..=5 {
-            let path = format!("{folder}/{i}.png");
+        for (id, path) in assets {
             let Ok(texture) = texture_creator.load_texture(&path) else {
-                println!("[ERR] failed to load texture {path}");
+                println!("[ERR] failed to load texture with id: {id} at '{path}'");
                 continue;
             };
-            textures.insert(i, texture);
+            textures.insert(id, texture);
         }
         Ok(textures)
     }
