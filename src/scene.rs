@@ -35,11 +35,7 @@ impl Scene {
     pub fn new(settings: Settings) -> Self {
         let opts = &settings.scene;
         let ray_caster = RayCaster::new(opts);
-        let player = Player::new(
-            opts.player_movement_speed,
-            opts.player_rotation_speed,
-            opts.tile_size,
-        );
+        let player = Player::new(&settings.player, opts.tile_size);
         let map = LevelMap::new(opts.tile_size);
         Self {
             settings,

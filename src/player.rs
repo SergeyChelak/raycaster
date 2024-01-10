@@ -4,6 +4,7 @@ use crate::{
     common::{DrawCommand, Float, Float2d},
     control::ControllerState,
     map::LevelMap,
+    settings::PlayerSettings,
 };
 
 #[derive(Default)]
@@ -16,10 +17,10 @@ pub struct Player {
 }
 
 impl Player {
-    pub fn new(movement_speed: Float, rotation_speed: Float, tile_size: usize) -> Self {
+    pub fn new(settings: &PlayerSettings, tile_size: usize) -> Self {
         Self {
-            movement_speed,
-            rotation_speed,
+            movement_speed: settings.player_movement_speed,
+            rotation_speed: settings.player_rotation_speed,
             tile_size: tile_size as Float,
             ..Self::default()
         }

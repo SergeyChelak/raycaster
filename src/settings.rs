@@ -5,6 +5,7 @@ use serde_derive::Deserialize;
 #[derive(Default, Deserialize)]
 pub struct Settings {
     pub scene: SceneSettings,
+    pub player: PlayerSettings,
     pub level: LevelInfo,
 }
 
@@ -22,10 +23,15 @@ pub struct SceneSettings {
     pub screen_height: usize,
     pub screen_width: usize,
     pub fps: usize,
-    pub player_movement_speed: f32,
-    pub player_rotation_speed: f32,
     pub max_depth: usize,
     pub fov: f32,
+}
+
+#[derive(Default, Deserialize)]
+pub struct PlayerSettings {
+    pub player_movement_speed: f32,
+    pub player_rotation_speed: f32,
+    pub player_size: f32,
 }
 
 #[derive(Default, Deserialize)]
