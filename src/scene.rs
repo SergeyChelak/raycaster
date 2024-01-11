@@ -79,7 +79,7 @@ impl Scene {
             .update(elapsed, &self.controller_state, &self.map);
         self.ray_caster
             .update(self.player.pos(), self.player.angle(), &self.map);
-        self.background.update(elapsed, self.player.angle());
+        self.background.update(self.player.angle());
         self.controller_state.reset_relative_values();
         self.time = Instant::now();
     }

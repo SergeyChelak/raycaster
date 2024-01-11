@@ -115,7 +115,7 @@ impl<'a> RendererSDL<'a> {
                         Rect::new((offset * (w as Float - width as Float)) as i32, 0, width, h);
                     self.canvas.copy(texture, src, dst)?;
                 }
-                DrawCommand::SkyTexture(id, ..) => {
+                DrawCommand::SkyTexture(id, offset) => {
                     let Some(texture) = textures.get(&id) else {
                         continue;
                     };
@@ -123,7 +123,23 @@ impl<'a> RendererSDL<'a> {
                     let (w, h) = (query.width, query.height);
                     let src = Rect::new(0, 0, w, h);
                     let scene_size = self.scene.window_size();
-                    let dst = Rect::new(0, 0, scene_size.width, scene_size.height >> 1);
+                    let offset = offset as i32;
+                    let half_height = scene_size.height >> 1;
+                    let dst = Rect::new(offset, 0, scene_size.width, half_height);
+                    self.canvas.copy(texture, src, dst)?;
+                    let dst = Rect::new(
+                        offset - scene_size.width as i32,
+                        0,
+                        scene_size.width,
+                        half_height,
+                    );
+                    self.canvas.copy(texture, src, dst)?;
+                    let dst = Rect::new(
+                        offset + scene_size.width as i32,
+                        0,
+                        scene_size.width,
+                        half_height,
+                    );
                     self.canvas.copy(texture, src, dst)?;
                 }
             }

@@ -1,3 +1,5 @@
+use std::f32::consts::PI;
+
 use crate::common::{DrawCommand, Float, ScreenSize};
 
 const TEXTURE_ID_SKY: i32 = 999;
@@ -15,13 +17,15 @@ impl Background {
         }
     }
 
-    pub fn update(&mut self, _delta_time: Float, _angle: Float) {
-        // TODO: calculate sky offset
+    pub fn update(&mut self, angle: Float) {
+        let w = self.scene_size.width as Float;
+        self.offset = 1.5 * angle * w / PI;
+        self.offset %= w;
     }
 
     pub fn draw(&self, commands: &mut Vec<DrawCommand>) {
         // sky
-        commands.push(DrawCommand::SkyTexture(TEXTURE_ID_SKY, self.offset));
+        commands.push(DrawCommand::SkyTexture(TEXTURE_ID_SKY, -self.offset));
         // floor
         // TODO: move floor color to settings or level data
         commands.push(DrawCommand::ColorRGB(30, 30, 30));
