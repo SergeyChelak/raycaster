@@ -4,10 +4,10 @@ use crate::{
     background::Background,
     common::{DrawCommand, Float2d, Size2d},
     control::{ControlEvent, ControllerState},
-    map::LevelMap,
     player::Player,
     raycaster::RayCaster,
     settings::Settings,
+    walls::Walls,
 };
 
 pub enum State {
@@ -24,7 +24,7 @@ impl Default for State {
 
 pub struct Scene {
     settings: Settings,
-    map: LevelMap,
+    walls: Walls,
     state: State,
     player: Player,
     ray_caster: RayCaster,
@@ -38,11 +38,11 @@ impl Scene {
         let opts = &settings.scene;
         let ray_caster = RayCaster::new(opts);
         let player = Player::new(&settings.player, opts.tile_size);
-        let map = LevelMap::new(opts.tile_size);
+        let walls = Walls::new(opts.tile_size);
         let background = Background::new(opts.screen_size());
         Self {
             settings,
-            map,
+            walls,
             state: State::default(),
             player,
             ray_caster,
@@ -54,7 +54,7 @@ impl Scene {
 
     pub fn prepare(&mut self) {
         let level_info = &self.settings.level;
-        self.map.prepare(&level_info.map);
+        self.walls.prepare(&level_info.map);
         self.player
             .setup(Float2d::new(level_info.player_x, level_info.player_y), 0.0);
         self.state = State::Running;
@@ -76,9 +76,9 @@ impl Scene {
     pub fn update(&mut self) {
         let elapsed = self.time.elapsed().as_secs_f32();
         self.player
-            .update(elapsed, &self.controller_state, &self.map);
+            .update(elapsed, &self.controller_state, &self.walls);
         self.ray_caster
-            .update(self.player.pos(), self.player.angle(), &self.map);
+            .update(self.player.pos(), self.player.angle(), &self.walls);
         self.background.update(self.player.angle());
         self.controller_state.reset_relative_values();
         self.time = Instant::now();
@@ -89,7 +89,7 @@ impl Scene {
         self.ray_caster.draw(commands);
         // TODO: refactor as mini map
         {
-            self.map.draw(commands);
+            self.walls.draw(commands);
             self.player.draw(commands);
         }
     }

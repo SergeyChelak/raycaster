@@ -1,7 +1,7 @@
 use crate::{
     common::{DrawCommand, Float, Float2d},
-    map::LevelMap,
     settings::SceneSettings,
+    walls::Walls,
 };
 
 const TOL: Float = 1e-3;
@@ -47,7 +47,7 @@ impl RayCaster {
         }
     }
 
-    pub fn update(&mut self, pos: Float2d, angle: Float, map: &LevelMap) {
+    pub fn update(&mut self, pos: Float2d, angle: Float, map: &Walls) {
         self.rect_buffer.clear();
         // default texture ids
         let (mut texture_id_vertical, mut texture_id_horizontal) =

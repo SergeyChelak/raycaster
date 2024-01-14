@@ -3,8 +3,8 @@ use std::f32::consts::PI;
 use crate::{
     common::{DrawCommand, Float, Float2d},
     control::ControllerState,
-    map::LevelMap,
     settings::PlayerSettings,
+    walls::Walls,
 };
 
 #[derive(Default)]
@@ -31,12 +31,7 @@ impl Player {
         self.angle = angle;
     }
 
-    pub fn update(
-        &mut self,
-        delta_time: Float,
-        controller_state: &ControllerState,
-        map: &LevelMap,
-    ) {
+    pub fn update(&mut self, delta_time: Float, controller_state: &ControllerState, map: &Walls) {
         let sin_a = self.angle.sin();
         let cos_a = self.angle.cos();
         let (mut dx, mut dy) = (0.0, 0.0);
@@ -60,10 +55,12 @@ impl Player {
             dx = -dist_sin;
             dy = dist_cos;
         }
-        let position = self.position + Float2d::new(dx, dy);
-        if !map.has_collision(position) {
-            self.position = position;
-        }
+        [(dx, 0.0), (0.0, dy)].iter().for_each(|(dx, dy)| {
+            let position = self.position + Float2d::new(*dx, *dy);
+            if !map.has_collision(position) {
+                self.position = position;
+            }
+        });
 
         // TODO: add mouse sensitivity config parameter
         self.angle += controller_state.mouse_x_relative as Float * delta_time;
@@ -95,6 +92,7 @@ impl Player {
             y + (length * self.angle.sin()) as i32,
         );
         commands.push(line);
+        commands.push(DrawCommand::ColorRGB(0, 0, 0));
     }
 
     pub fn pos(&self) -> Float2d {

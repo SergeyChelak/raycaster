@@ -1,7 +1,6 @@
 mod background;
 mod common;
 mod control;
-mod map;
 mod pbm;
 mod player;
 mod raycaster;
@@ -9,6 +8,7 @@ mod renderer;
 mod scene;
 mod settings;
 mod vectors;
+mod walls;
 
 use renderer::RendererSDL;
 use scene::Scene;

@@ -4,12 +4,12 @@ use crate::{
 };
 
 #[derive(Default)]
-pub struct LevelMap {
+pub struct Walls {
     content: Vec<Vec<i32>>,
     tile_size: usize,
 }
 
-impl LevelMap {
+impl Walls {
     pub fn new(tile_size: usize) -> Self {
         Self {
             tile_size,
@@ -32,7 +32,7 @@ impl LevelMap {
                 if *val == 0 {
                     continue;
                 }
-                let obj = DrawCommand::Rectangle(
+                let obj = DrawCommand::FillRectangle(
                     (c * tile_size) as i32,
                     (r * tile_size) as i32,
                     tile_size as u32,
