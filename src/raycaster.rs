@@ -4,7 +4,7 @@ use crate::{
     walls::Walls,
 };
 
-const TOL: Float = 1e-3;
+const TOL: Float = 1e-5;
 const DEFAULT_TEXTURE_ID: i32 = 1;
 
 struct Rect {
@@ -53,7 +53,7 @@ impl RayCaster {
         let (mut texture_id_vertical, mut texture_id_horizontal) =
             (DEFAULT_TEXTURE_ID, DEFAULT_TEXTURE_ID);
         let (tile_x, tile_y) = (pos.x.floor(), pos.y.floor());
-        let mut ray_angle = angle - self.half_fov + TOL;
+        let mut ray_angle = angle - self.half_fov;
         for _ in 0..self.rays {
             let sin_a = ray_angle.sin();
             let cos_a = ray_angle.cos();
