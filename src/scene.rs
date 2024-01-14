@@ -88,7 +88,7 @@ impl Scene {
         self.background.draw(commands);
         self.ray_caster.draw(commands);
         // TODO: refactor as mini map
-        {
+        if self.controller_state.minimap_visible {
             self.walls.draw(commands);
             self.player.draw(commands);
         }
