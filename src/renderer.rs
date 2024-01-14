@@ -142,6 +142,26 @@ impl<'a> RendererSDL<'a> {
                     );
                     self.canvas.copy(texture, src, dst)?;
                 }
+                DrawCommand::Sprite(id, center_x, projection, elevation) => {
+                    let Some(texture) = textures.get(&id) else {
+                        continue;
+                    };
+                    // TODO: don't draw the texture if it is out of the field of view
+                    let query = texture.query();
+                    let src = Rect::new(0, 0, query.width, query.height);
+
+                    let (texture_width, texture_height) =
+                        (query.width as Float, query.height as Float);
+                    let ratio = texture_width / texture_height;
+                    let w = ratio * projection;
+                    let h = projection;
+                    let scene_size = self.scene.window_size();
+                    let half_height = scene_size.height >> 1;
+                    let x = (center_x - 0.5 * w) as i32;
+                    let y = half_height as i32 - ((h as i32) >> 1) + (h * elevation) as i32;
+                    let dst = Rect::new(x, y, w as u32, h as u32);
+                    self.canvas.copy(texture, src, dst)?;
+                }
             }
         }
         self.canvas.present();
@@ -190,6 +210,7 @@ impl<'a> RendererSDL<'a> {
             (4, "assets/textures/4.png"),
             (5, "assets/textures/5.png"),
             (999, "assets/textures/sky.png"),
+            (1000, "assets/sprites/1.png"),
         ];
         let mut textures = HashMap::new();
         for (id, path) in assets {

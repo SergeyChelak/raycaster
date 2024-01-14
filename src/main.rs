@@ -7,6 +7,7 @@ mod raycaster;
 mod renderer;
 mod scene;
 mod settings;
+mod sprite;
 mod vectors;
 mod walls;
 

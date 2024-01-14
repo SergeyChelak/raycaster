@@ -15,6 +15,7 @@ pub struct Size2d<T> {
 
 pub type ScreenSize = Size2d<u32>;
 
+// TODO: it's a bad design, need to improve
 pub enum DrawCommand {
     ColorRGB(u8, u8, u8),
     Rectangle(i32, i32, u32, u32),
@@ -22,4 +23,5 @@ pub enum DrawCommand {
     Line(i32, i32, i32, i32),
     Texture(i32, i32, Float, u32, u32, Float, i32), // x, y, offset, width, projected_height, depth, id
     SkyTexture(i32, Float),                         // id, offset
+    Sprite(i32, Float, Float, Float),               // texture id, x center, projected height
 }

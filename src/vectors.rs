@@ -1,4 +1,4 @@
-use std::ops::{Add, AddAssign};
+use std::ops::{Add, AddAssign, Sub};
 
 #[derive(Default, Copy, Clone)]
 pub struct Vec2d<T> {
@@ -31,6 +31,7 @@ where
     }
 }
 
+// -----
 impl<T> Add<&Self> for Vec2d<T>
 where
     T: Copy + Add<Output = T>,
@@ -53,5 +54,31 @@ where
 
     fn add(self, rhs: Self) -> Self::Output {
         self.add(&rhs)
+    }
+}
+
+// -----
+impl<T> Sub<&Self> for Vec2d<T>
+where
+    T: Copy + Sub<Output = T>,
+{
+    type Output = Self;
+
+    fn sub(self, rhs: &Self) -> Self::Output {
+        Self {
+            x: self.x - rhs.x,
+            y: self.y - rhs.y,
+        }
+    }
+}
+
+impl<T> Sub<Self> for Vec2d<T>
+where
+    T: Copy + Sub<Output = T>,
+{
+    type Output = Self;
+
+    fn sub(self, rhs: Self) -> Self::Output {
+        self.sub(&rhs)
     }
 }
