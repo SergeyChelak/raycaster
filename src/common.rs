@@ -21,6 +21,18 @@ pub enum DrawCommand {
     Rectangle(i32, i32, u32, u32),
     FillRectangle(i32, i32, u32, u32),
     Line(i32, i32, i32, i32),
-    SkyTexture { id: i32, offset: Float }, // id, offset
-    Texture(Float, i32, i32, Float, u32, u32, i32), // distance, x, y, offset, width, projected_height, id
+    SkyTexture {
+        id: i32,
+        offset: Float,
+    }, // id, offset
+    // Texture(Float, i32, i32, Float, u32, u32, i32), // distance, x, y, offset, width, projected_height, id
+    Texture {
+        depth: Float,
+        x: i32,
+        y: i32,
+        offset: Float,
+        width: u32,
+        projected_height: u32,
+        texture_id: i32,
+    },
 }

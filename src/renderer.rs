@@ -100,9 +100,17 @@ impl<'a> RendererSDL<'a> {
                     let end = Point::new(x2, y2);
                     self.canvas.draw_line(start, end)?;
                 }
-                DrawCommand::Texture(depth, x, y, offset, width, projected_height, id) => {
+                DrawCommand::Texture {
+                    depth,
+                    x,
+                    y,
+                    offset,
+                    width,
+                    projected_height,
+                    texture_id,
+                } => {
                     let dst = Rect::new(x, y, width, projected_height);
-                    let Some(texture) = textures.get(&id) else {
+                    let Some(texture) = textures.get(&texture_id) else {
                         // draw gray-scale bars in case of missing texture
                         let clr = (255.0 / (1.0 + depth.powi(5) * 0.00002)) as u8;
                         self.canvas.set_draw_color(Color::RGB(clr, clr, clr));
