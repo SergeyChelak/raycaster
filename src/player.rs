@@ -81,16 +81,22 @@ impl Player {
             (self.position.x * self.tile_size) as i32,
             (self.position.y * self.tile_size) as i32,
         );
-        let rect = DrawCommand::Rectangle(x - size / 2, y - size / 2, size as u32, size as u32);
+        let rect = DrawCommand::Rectangle {
+            x: x - size / 2,
+            y: y - size / 2,
+            w: size as u32,
+            h: size as u32,
+            fill: true,
+        };
         commands.push(rect);
 
         let length = 3.0 * self.tile_size;
-        let line = DrawCommand::Line(
-            x,
-            y,
-            x + (length * self.angle.cos()) as i32,
-            y + (length * self.angle.sin()) as i32,
-        );
+        let line = DrawCommand::Line {
+            x1: x,
+            y1: y,
+            x2: x + (length * self.angle.cos()) as i32,
+            y2: y + (length * self.angle.sin()) as i32,
+        };
         commands.push(line);
         commands.push(DrawCommand::ColorRGB(0, 0, 0));
     }

@@ -18,14 +18,23 @@ pub type ScreenSize = Size2d<u32>;
 // TODO: it's a bad design, need to improve
 pub enum DrawCommand {
     ColorRGB(u8, u8, u8),
-    Rectangle(i32, i32, u32, u32),
-    FillRectangle(i32, i32, u32, u32),
-    Line(i32, i32, i32, i32),
+    Rectangle {
+        x: i32,
+        y: i32,
+        w: u32,
+        h: u32,
+        fill: bool,
+    },
+    Line {
+        x1: i32,
+        y1: i32,
+        x2: i32,
+        y2: i32,
+    },
     SkyTexture {
         id: i32,
         offset: Float,
-    }, // id, offset
-    // Texture(Float, i32, i32, Float, u32, u32, i32), // distance, x, y, offset, width, projected_height, id
+    },
     Texture {
         depth: Float,
         x: i32,

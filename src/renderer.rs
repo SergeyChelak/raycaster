@@ -87,15 +87,15 @@ impl<'a> RendererSDL<'a> {
                 DrawCommand::ColorRGB(r, g, b) => {
                     self.canvas.set_draw_color(Color::RGB(r, g, b));
                 }
-                DrawCommand::Rectangle(x, y, w, h) => {
+                DrawCommand::Rectangle { x, y, w, h, fill } => {
                     let rect = Rect::new(x, y, w, h);
-                    self.canvas.draw_rect(rect)?;
+                    if fill {
+                        self.canvas.fill_rect(rect)?;
+                    } else {
+                        self.canvas.draw_rect(rect)?;
+                    }
                 }
-                DrawCommand::FillRectangle(x, y, w, h) => {
-                    let rect = Rect::new(x, y, w, h);
-                    self.canvas.fill_rect(rect)?;
-                }
-                DrawCommand::Line(x1, y1, x2, y2) => {
+                DrawCommand::Line { x1, y1, x2, y2 } => {
                     let start = Point::new(x1, y1);
                     let end = Point::new(x2, y2);
                     self.canvas.draw_line(start, end)?;

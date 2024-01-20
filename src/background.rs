@@ -32,12 +32,13 @@ impl Background {
         // floor
         // TODO: move floor color to settings or level data
         commands.push(DrawCommand::ColorRGB(30, 30, 30));
-        let obj = DrawCommand::FillRectangle(
-            0,
-            self.scene_size.height as i32 >> 1,
-            self.scene_size.width,
-            self.scene_size.height >> 1,
-        );
+        let obj = DrawCommand::Rectangle {
+            x: 0,
+            y: self.scene_size.height as i32 >> 1,
+            w: self.scene_size.width,
+            h: self.scene_size.height >> 1,
+            fill: true,
+        };
         commands.push(obj);
     }
 }

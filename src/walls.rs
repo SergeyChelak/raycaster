@@ -32,12 +32,13 @@ impl Walls {
                 if *val == 0 {
                     continue;
                 }
-                let obj = DrawCommand::FillRectangle(
-                    (c * tile_size) as i32,
-                    (r * tile_size) as i32,
-                    tile_size as u32,
-                    tile_size as u32,
-                );
+                let obj = DrawCommand::Rectangle {
+                    x: (c * tile_size) as i32,
+                    y: (r * tile_size) as i32,
+                    w: tile_size as u32,
+                    h: tile_size as u32,
+                    fill: true,
+                };
                 commands.push(obj);
             }
         }
