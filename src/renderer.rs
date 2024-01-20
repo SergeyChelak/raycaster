@@ -34,7 +34,13 @@ impl<'a> RendererSDL<'a> {
             .build()
             .map_err(|op| op.to_string())?;
         // context.mouse().show_cursor(false);
-        let canvas = window.into_canvas().build().map_err(|op| op.to_string())?;
+        let canvas = window
+            .into_canvas()
+            .accelerated()
+            .target_texture()
+            .present_vsync()
+            .build()
+            .map_err(|op| op.to_string())?;
         let event_pump = context.event_pump()?;
         Ok(Self {
             canvas,
