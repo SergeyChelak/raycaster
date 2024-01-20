@@ -25,7 +25,10 @@ impl Background {
 
     pub fn draw(&self, commands: &mut Vec<DrawCommand>) {
         // sky
-        commands.push(DrawCommand::SkyTexture(TEXTURE_ID_SKY, -self.offset));
+        commands.push(DrawCommand::SkyTexture {
+            id: TEXTURE_ID_SKY,
+            offset: -self.offset,
+        });
         // floor
         // TODO: move floor color to settings or level data
         commands.push(DrawCommand::ColorRGB(30, 30, 30));
