@@ -21,7 +21,6 @@ pub enum DrawCommand {
     Rectangle(i32, i32, u32, u32),
     FillRectangle(i32, i32, u32, u32),
     Line(i32, i32, i32, i32),
-    Texture(i32, i32, Float, u32, u32, Float, i32), // x, y, offset, width, projected_height, depth, id
     SkyTexture(i32, Float),                         // id, offset
-    Sprite(i32, Float, Float, Float),               // texture id, x center, projected height
+    Texture(Float, i32, i32, Float, u32, u32, i32), // distance, x, y, offset, width, projected_height, id
 }

@@ -133,12 +133,12 @@ impl RayCaster {
     pub fn draw(&self, commands: &mut Vec<DrawCommand>) {
         for (ray, rect) in self.rect_buffer.iter().enumerate() {
             let cmd = DrawCommand::Texture(
+                rect.depth,
                 (ray as Float * self.scale) as i32,
                 (0.5 * (self.height - rect.projected_height)) as i32,
                 rect.texture_offset,
                 self.scale as u32,
                 rect.projected_height as u32,
-                rect.depth,
                 rect.texture_id,
             );
             commands.push(cmd);

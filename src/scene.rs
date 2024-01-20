@@ -7,7 +7,6 @@ use crate::{
     player::Player,
     raycaster::RayCaster,
     settings::Settings,
-    sprite::Sprite,
     walls::Walls,
 };
 
@@ -31,7 +30,6 @@ pub struct Scene {
     player: Player,
     ray_caster: RayCaster,
     background: Background,
-    sprite: Sprite,
     // --
     controller_state: ControllerState,
     time: Instant,
@@ -44,7 +42,6 @@ impl Scene {
         let player = Player::new(&settings.player, opts.tile_size);
         let walls = Walls::new(opts.tile_size);
         let background = Background::new(opts.screen_size());
-        let sprite = Sprite::new(opts);
         Self {
             settings,
             walls,
@@ -52,7 +49,6 @@ impl Scene {
             player,
             ray_caster,
             background,
-            sprite,
             controller_state: ControllerState::default(),
             time: Instant::now(),
         }
@@ -63,8 +59,6 @@ impl Scene {
         self.walls.prepare(&level_info.map);
         self.player
             .setup(Float2d::new(level_info.player_x, level_info.player_y), 0.0);
-        self.sprite
-            .prepare(1000, Float2d::new(24.0, 25.5), 0.6, 0.28);
         self.state = State::Running;
     }
 
@@ -89,7 +83,6 @@ impl Scene {
         self.ray_caster
             .update(self.player.pos(), self.player.angle(), &self.walls);
         self.background.update(self.player.angle());
-        self.sprite.update(self.player.pos(), self.player.angle());
         self.controller_state.reset_relative_values();
         self.time = Instant::now();
     }
@@ -98,7 +91,6 @@ impl Scene {
         // TODO: this design isn't good, need to improve
         self.background.draw(commands);
         self.ray_caster.draw(commands);
-        self.sprite.draw(commands);
         // TODO: refactor as mini map
         if self.controller_state.minimap_visible {
             self.walls.draw(commands);
