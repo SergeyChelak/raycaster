@@ -80,6 +80,7 @@ impl<'a> RendererSDL<'a> {
         commands: &mut Vec<DrawCommand>,
     ) -> Result<(), String> {
         self.scene.draw(commands);
+        self.canvas.set_draw_color(Color::BLACK);
         self.canvas.clear();
 
         for command in commands {
