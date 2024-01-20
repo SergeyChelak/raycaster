@@ -1,6 +1,14 @@
 pub enum ControlEvent {
-    Keyboard(i32, bool),             // key code | is pressed
-    MouseMotion(i32, i32, i32, i32), // x, y, x relative, y relative
+    Keyboard {
+        key_code: i32,
+        is_pressed: bool,
+    },
+    MouseMotion {
+        x: i32,
+        y: i32,
+        x_rel: i32,
+        y_rel: i32,
+    },
 }
 
 #[derive(Default)]

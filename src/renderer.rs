@@ -169,18 +169,29 @@ impl<'a> RendererSDL<'a> {
                     keycode: Some(keycode),
                     ..
                 } => {
-                    events.push(ControlEvent::Keyboard(keycode as i32, true));
+                    events.push(ControlEvent::Keyboard {
+                        key_code: keycode as i32,
+                        is_pressed: true,
+                    });
                 }
                 Event::KeyUp {
                     keycode: Some(keycode),
                     ..
                 } => {
-                    events.push(ControlEvent::Keyboard(keycode as i32, false));
+                    events.push(ControlEvent::Keyboard {
+                        key_code: keycode as i32,
+                        is_pressed: false,
+                    });
                 }
                 Event::MouseMotion {
                     x, y, xrel, yrel, ..
                 } => {
-                    events.push(ControlEvent::MouseMotion(x, y, xrel, yrel));
+                    events.push(ControlEvent::MouseMotion {
+                        x,
+                        y,
+                        x_rel: xrel,
+                        y_rel: yrel,
+                    });
                 }
                 _ => {}
             }

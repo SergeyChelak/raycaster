@@ -65,10 +65,11 @@ impl Scene {
     pub fn process_events(&mut self, events: &[ControlEvent]) {
         for event in events {
             match event {
-                ControlEvent::Keyboard(code, is_pressed) => {
-                    self.controller_state.on_key_event(*code, *is_pressed)
-                }
-                ControlEvent::MouseMotion(_x, _y, x_rel, _y_rel) => {
+                ControlEvent::Keyboard {
+                    key_code,
+                    is_pressed,
+                } => self.controller_state.on_key_event(*key_code, *is_pressed),
+                ControlEvent::MouseMotion { x_rel, .. } => {
                     self.controller_state.mouse_x_relative = *x_rel;
                 }
             }
